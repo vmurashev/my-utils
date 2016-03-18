@@ -530,7 +530,9 @@ def report_diff(config):
     dname_exclusions = get_conf_strings_optional(config, TAG_CONFIG, TAG_DIRS_EXCLUDE_BY_NAME)
     fname_exclusions = get_conf_strings_optional(config, TAG_CONFIG, TAG_FILES_EXCLUDE_BY_NAME)
 
+    print("> SCAN: {}".format(state_file))
     project_from = load_project_from_state_file(state_file)
+    print("> SCAN: {}".format(dir_to_track))
     project_to = load_project(dir_to_track, file_exclusions=file_exclusions, dir_exclusions=dir_exclusions, fname_exclusions=fname_exclusions, dname_exclusions=dname_exclusions)
     report_projects_diff(project_from, project_to)
 
