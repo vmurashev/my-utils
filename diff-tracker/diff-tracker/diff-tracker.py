@@ -15,7 +15,7 @@ import subprocess
 ROOT_KEY = '<root>'
 TYPE_DIR = 'd'
 TYPE_FILE = 'f'
-
+TYPE_SYMLINK = 's'
 
 CHANGE_STATUS_ITEM_MODIFIED = 0x0001
 CHANGE_STATUS_ITEM_ADDED    = 0x0002
@@ -26,13 +26,19 @@ CHANGE_STATUS_INHERITED     = 0x0010
 
 def _to_string(v):
     if sys.version_info[0] < 3:
-        if isintance(v, unicode):
+        if isinstance(v, unicode):
             return v
         return unicode(v)
     else:
-        if isintance(v, str):
+        if isinstance(v, str):
             return v
         return str(v)
+
+
+def _from_string(v):
+    if sys.version_info[0] < 3:
+        return v
+    return v.encode('utf-8')
 
 
 def is_item_type_recursive(tp_name):
@@ -168,6 +174,12 @@ def md5_of_file(path):
     return m.hexdigest()
 
 
+def md5_of_string(value):
+    m = hashlib.md5()
+    m.update(_from_string(value))
+    return m.hexdigest()
+
+
 def enum_fs_content_recursive(seed, selector, outbox, pathbits):
     if pathbits:
         fs_path = os.path.join(seed, *pathbits)
@@ -178,6 +190,15 @@ def enum_fs_content_recursive(seed, selector, outbox, pathbits):
     else:
         fs_path = seed
         parent = None
+
+    if os.path.islink(fs_path):
+        arch_path = '/'.join(pathbits)
+        link_value = os.readlink(fs_path)
+        fsum = md5_of_string(link_value)
+        item = Source(arch_path, TYPE_SYMLINK, fsum)
+        outbox[arch_path] = item
+        return fsum
+
     is_dir = os.path.isdir(fs_path)
     if not is_dir:
         arch_path = '/'.join(pathbits)
@@ -420,6 +441,7 @@ def get_conf_strings_optional(config, section, option):
 
 def get_os_path_from_config(config, section, option, dir_home):
     path_ref = get_conf_string1(config, section, option)
+    path_ref = os.path.expanduser(path_ref)
     if not os.path.isabs(path_ref):
         path_ref = os.path.join(dir_home, path_ref)
     return os.path.normpath(path_ref)
@@ -429,6 +451,7 @@ def get_os_path_list_from_config(config, section, option, dir_home):
     path_ref_list = get_conf_strings(config, section, option)
     result = []
     for path_ref in path_ref_list:
+        path_ref = os.path.expanduser(path_ref)
         if not os.path.isabs(path_ref):
             path_ref = os.path.join(dir_home, path_ref)
         result.append(os.path.normpath(path_ref))
