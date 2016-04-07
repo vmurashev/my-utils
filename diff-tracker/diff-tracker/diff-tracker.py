@@ -6,7 +6,6 @@ else:
 import argparse
 import io
 import hashlib
-import mimetypes
 import os.path
 import shutil
 import subprocess
@@ -46,24 +45,24 @@ def is_item_type_recursive(tp_name):
 
 
 class FileTreeNode:
-    def __init__(self, local_id, parent_key = None):
-        self.local_id = id
+    def __init__(self, name, parent_key = None):
+        self.node_name = name
         if (parent_key is None) or (parent_key == ROOT_KEY):
-            self.node_key = local_id
+            self.node_key = name
         else:
-            self.node_key = '/'.join([parent_key, local_id])
+            self.node_key = '/'.join([parent_key, name])
         self.children = {}
 
-    def get_child(self, id):
-        ret = self.children.get(id)
+    def get_child(self, name):
+        ret = self.children.get(name)
         if ret is None:
-            raise Exception("Node '{}' doesn't have child named '{}'.".format(self.id, id))
+            raise Exception("Node '{}' doesn't have child named '{}'.".format(self.node_key, name))
         return ret
 
-    def add_child(self, id):
-        if id in self.children:
-            raise Exception("Child named '{}' already added in node '{}'.".format(id, self.id))
-        self.children[id] = FileTreeNode(id, self.node_key)
+    def add_child(self, name):
+        if name in self.children:
+            raise Exception("Child named '{}' already added in node '{}'.".format(name, self.node_key))
+        self.children[name] = FileTreeNode(name, self.node_key)
 
     def select_keys_of_children(self):
         ret = set()
@@ -483,6 +482,8 @@ TAG_FILES_EXCLUDE_BY_NAME = 'FILES_EXCLUDE_BY_NAME'
 
 def load_config(conf_file):
     conf_path = os.path.normpath(os.path.abspath(conf_file))
+    if not os.path.isfile(conf_path):
+        raise Exception("Config file '{}' not found.".format(conf_path))
     config = configparser.RawConfigParser()
     config.read(conf_path)
     global DIR_HOME
