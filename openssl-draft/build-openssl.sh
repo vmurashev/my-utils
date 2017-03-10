@@ -6,10 +6,9 @@ mkdir -p $DIR_OBJ
 
 ABI_ALL='x86,x86_64'
 
-ZLIB_URL='http://zlib.net/zlib-1.2.11.tar.gz'
-ZLIB_ARC_NAME=$(basename $ZLIB_URL)
+source "$DIR_HERE/conf.sh"
 
-OPENSSL_URL='https://openssl.org/source/openssl-1.0.2k.tar.gz'
+ZLIB_ARC_NAME=$(basename $ZLIB_URL)
 OPENSSL_ARC_NAME=$(basename $OPENSSL_URL)
 
 THIS_MACHINE_BUILD=$($DIR_HERE/config.guess)

@@ -5,15 +5,47 @@ import configparser
 import os
 import os.path
 import shutil
-
+import subprocess
 
 DIR_HERE = os.path.normpath(os.path.abspath(os.path.dirname(__file__)))
+
+with open(os.path.join(DIR_HERE, 'conf.sh'), mode='rt') as conf_sh:
+    exec(compile(conf_sh.read(), os.path.join(DIR_HERE, 'conf.sh'), 'exec'))
 
 PLAYBACK_INI_x86 = os.path.normpath(os.path.join(DIR_HERE, 'obj/bin-trace/x86/build.ini'))
 PLAYBACK_INI_x86_64 = os.path.normpath(os.path.join(DIR_HERE, 'obj/bin-trace/x86_64/build.ini'))
 
-CRYPTO_STATIC_MAKE_DIR = '/home/vet/me/openssl/0/build/crypto_static'
-OPENSSL_HEADERS_DIR = '/home/vet/me/openssl/0/include/openssl'
+DIR_PROJECT_ROOT = os.path.normpath(os.path.join(DIR_HERE, 'draft'))
+DIR_OPENSSL_SUBMODULE = os.path.join(DIR_PROJECT_ROOT, '0')
+DIR_OPENSSL_SUBMODULE_VENDOR = os.path.join(DIR_OPENSSL_SUBMODULE, 'vendor')
+
+CRYPTO_STATIC_MAKE_DIR = os.path.join(DIR_OPENSSL_SUBMODULE, 'build/crypto_static')
+OPENSSL_HEADERS_DIR = os.path.join(DIR_OPENSSL_SUBMODULE, 'include/openssl')
+
+PROJECT_MAKE_CONFIG = """
+[MINIBUILD]
+supported-platforms = linux
+toolset-linux = GCC-CROSSTOOL-i686 GCC-CROSSTOOL-x86_64
+
+[GCC-CROSSTOOL-i686]
+module = gcc
+config = {'x-tools':{'arch':['x86'],'package_path':'~/x-tools/i686-unknown-linux-gnu','prefix':'i686-unknown-linux-gnu-'}}
+
+[GCC-CROSSTOOL-x86_64]
+module = gcc
+config = {'x-tools':{'arch':['x86_64'],'package_path':'~/x-tools/x86_64-unknown-linux-gnu','prefix':'x86_64-unknown-linux-gnu-'}}
+"""
+
+
+if not os.path.isfile(os.path.join(DIR_PROJECT_ROOT, 'minibuild.ini')):
+    if not os.path.isdir(DIR_OPENSSL_SUBMODULE_VENDOR):
+        os.makedirs(DIR_OPENSSL_SUBMODULE_VENDOR)
+    if not os.path.isdir(CRYPTO_STATIC_MAKE_DIR):
+        os.makedirs(CRYPTO_STATIC_MAKE_DIR)
+    subprocess.check_call(['tar', 'xf', os.path.join(DIR_HERE, 'obj', os.path.basename(OPENSSL_URL)), '--strip-components=1', '-C', DIR_OPENSSL_SUBMODULE_VENDOR])
+    subprocess.check_call(['git', 'clone', 'https://github.com/vmurashev/zlib.git'], cwd=DIR_PROJECT_ROOT)
+    with open(os.path.join(DIR_PROJECT_ROOT, 'minibuild.ini'), mode='wt') as fh:
+        print(PROJECT_MAKE_CONFIG, file=fh)
 
 
 def load_ini_config(path):
@@ -193,7 +225,7 @@ def main():
 
     gen_headers(OPENSSL_HEADERS_DIR, '../../vendor', arch_map)
 
-    crypto_incd = ['../../include', '../../vendor', '../../vendor/crypto']
+    crypto_incd = ['../../include', '../../vendor', '../../vendor/crypto', '../../../zlib/include']
     gen_makefile_for_static_lib('crypto', 'crypto_static', '../../vendor', crypto_incd, CRYPTO_STATIC_MAKE_DIR, arch_map)
 
 
