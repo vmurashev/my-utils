@@ -4,16 +4,13 @@ import os.path
 
 DIR_HERE = os.path.normpath(os.path.abspath(os.path.dirname(__file__)))
 
-PLAYBACK_LOG_x86 = os.path.normpath(os.path.join(DIR_HERE, 'obj/bin-trace/x86/build.log'))
-PLAYBACK_HEADERS_x86 = os.path.normpath(os.path.join(DIR_HERE, 'obj/bin-trace/x86/headers.list'))
-PLAYBACK_INI_x86 = os.path.normpath(os.path.join(DIR_HERE, 'obj/bin-trace/x86/build.ini'))
+with open(os.path.join(DIR_HERE, 'conf.sh'), mode='rt') as conf_sh:
+    exec(compile(conf_sh.read(), os.path.join(DIR_HERE, 'conf.sh'), 'exec'))
 
-PLAYBACK_LOG_x86_64 = os.path.normpath(os.path.join(DIR_HERE, 'obj/bin-trace/x86_64/build.log'))
-PLAYBACK_HEADERS_x86_64 = os.path.normpath(os.path.join(DIR_HERE, 'obj/bin-trace/x86_64/headers.list'))
-PLAYBACK_INI_x86_64 = os.path.normpath(os.path.join(DIR_HERE, 'obj/bin-trace/x86_64/build.ini'))
 
 KNOWN_TOOLS = ['gcc', 'ar', 'ranlib']
 
+HEADERS_TO_SKIP = ['opensslconf.h']
 
 def norm_build_dir(arg):
     bits = []
@@ -21,7 +18,7 @@ def norm_build_dir(arg):
     for v in arg.strip().split('/'):
         if got:
             bits.append(v)
-        elif v == 'objtree':
+        elif v.startswith('openssl-src-'):
             got = True
     return '/'.join(bits)
 
@@ -81,10 +78,8 @@ def parse_build_log(input_log, input_headers, output_ini):
                         if d.startswith('-D'):
                             if d != '-DZLIB_SHARED':
                                 src_defs.append(d[2:])
-                    src_dir = ''
                     src = src_line
                     if '/' in src:
-                        src_dir = os.path.dirname(src_line)
                         src = os.path.basename(src_line)
                     if exec_dir:
                         src_path = '/'.join([exec_dir, src_line])
@@ -139,7 +134,8 @@ def parse_build_log(input_log, input_headers, output_ini):
             raise Exception("BAD LINE")
         h_name = bits[0].strip()
         h_tgt = bits[1].strip()
-        HEADERS.append((h_name, h_tgt))
+        if h_name not in HEADERS_TO_SKIP:
+            HEADERS.append((h_name, h_tgt))
 
     with open(output_ini, mode='wt') as fh:
         print("[CONFIG]", file=fh)
@@ -166,6 +162,12 @@ def parse_build_log(input_log, input_headers, output_ini):
 
 
 if __name__ == '__main__':
-    parse_build_log(PLAYBACK_LOG_x86, PLAYBACK_HEADERS_x86, PLAYBACK_INI_x86)
-    parse_build_log(PLAYBACK_LOG_x86_64, PLAYBACK_HEADERS_x86_64, PLAYBACK_INI_x86_64)
+    arch_list = ABI_ALL.split(',')
+    for arch in arch_list:
+        playback_log = os.path.normpath(os.path.join(DIR_HERE, 'obj/bin-trace/{}/build.log'.format(arch)))
+        playback_headers = os.path.normpath(os.path.join(DIR_HERE, 'obj/bin-trace/{}/headers.list'.format(arch)))
+        playback_ini = os.path.normpath(os.path.join(DIR_HERE, 'obj/bin-trace/{}/build.ini'.format(arch)))
+
+        parse_build_log(playback_log, playback_headers, playback_ini)
+
     print('parsed!')

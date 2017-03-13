@@ -12,15 +12,15 @@ DIR_HERE = os.path.normpath(os.path.abspath(os.path.dirname(__file__)))
 with open(os.path.join(DIR_HERE, 'conf.sh'), mode='rt') as conf_sh:
     exec(compile(conf_sh.read(), os.path.join(DIR_HERE, 'conf.sh'), 'exec'))
 
-PLAYBACK_INI_x86 = os.path.normpath(os.path.join(DIR_HERE, 'obj/bin-trace/x86/build.ini'))
-PLAYBACK_INI_x86_64 = os.path.normpath(os.path.join(DIR_HERE, 'obj/bin-trace/x86_64/build.ini'))
-
 DIR_PROJECT_ROOT = os.path.normpath(os.path.join(DIR_HERE, 'draft'))
 DIR_OPENSSL_SUBMODULE = os.path.join(DIR_PROJECT_ROOT, '0')
 DIR_OPENSSL_SUBMODULE_VENDOR = os.path.join(DIR_OPENSSL_SUBMODULE, 'vendor')
 
-CRYPTO_STATIC_MAKE_DIR = os.path.join(DIR_OPENSSL_SUBMODULE, 'build/crypto_static')
 OPENSSL_HEADERS_DIR = os.path.join(DIR_OPENSSL_SUBMODULE, 'include/openssl')
+
+CRYPTO_STATIC_MAKE_DIR = os.path.join(DIR_OPENSSL_SUBMODULE, 'build/crypto_static')
+CRYPTO_SHARED_MAKE_DIR = os.path.join(DIR_OPENSSL_SUBMODULE, 'build/crypto')
+
 
 PROJECT_MAKE_CONFIG = """
 [MINIBUILD]
@@ -36,6 +36,8 @@ module = gcc
 config = {'x-tools':{'arch':['x86_64'],'package_path':'~/x-tools/x86_64-unknown-linux-gnu','prefix':'x86_64-unknown-linux-gnu-'}}
 """
 
+
+FNAMES_TO_SKIP = ['cversion.c']
 
 if not os.path.isfile(os.path.join(DIR_PROJECT_ROOT, 'minibuild.ini')):
     if not os.path.isdir(DIR_OPENSSL_SUBMODULE_VENDOR):
@@ -80,12 +82,16 @@ def get_ini_conf_strings_optional(config, section, option):
     return get_ini_conf_strings(config, section, option)
 
 
-def gen_makefile_for_static_lib(lib_ini_name, lib_make_name, vendor_prefix, incd, makedir, arch_map):
+ASM_COPIED = 0
+
+def gen_makefile_for_lib(lib_ini_name, lib_make_name, vendor_prefix, incd, makedir, arch_map, def_file=None):
+    is_shared = def_file is not None
     arch_list = sorted(arch_map.keys())
 
     all_files = set()
     arch_specific_files = set()
     arch_files_map = {}
+    arch_asm_files = {}
 
     all_defs = set()
     arch_specific_defs = set()
@@ -135,10 +141,17 @@ def gen_makefile_for_static_lib(lib_ini_name, lib_make_name, vendor_prefix, incd
             dir_name = os.path.dirname(f)
             dir_names.add(dir_name)
 
-
     with open(os.path.join(makedir, 'minibuild.mk'), mode='wt') as fh:
-        print("module_type = 'lib-static'", file=fh)
+        if is_shared:
+            print("module_type = 'lib-shared'", file=fh)
+        else:
+            print("module_type = 'lib-static'", file=fh)
         print("module_name = '{}'".format(lib_make_name), file=fh)
+
+        if def_file is not None:
+            print("", file=fh)
+            print("exports_def_file = '{}'".format(os.path.basename(def_file)), file=fh)
+            print("", file=fh)
 
         print("", file=fh)
         print("src_search_dir_list = [", file=fh)
@@ -163,7 +176,7 @@ def gen_makefile_for_static_lib(lib_ini_name, lib_make_name, vendor_prefix, incd
         print("", file=fh)
 
         for arch in arch_list:
-            print("definitions_{} = [".format(arch), file=fh)
+            print("definitions_linux_{} = [".format(arch), file=fh)
             for d in sorted(arch_def_map[arch]):
                 if d in common_defs:
                     continue
@@ -173,20 +186,41 @@ def gen_makefile_for_static_lib(lib_ini_name, lib_make_name, vendor_prefix, incd
 
         print("", file=fh)
         print("build_list = [", file=fh)
-        for f in sorted(common_files_names):
-            print("  '{}',".format(f), file=fh)
+        for f_name in sorted(common_files_names):
+            if f_name in FNAMES_TO_SKIP:
+                continue
+            print("  '{}',".format(f_name), file=fh)
         print("]", file=fh)
         print("", file=fh)
 
         for arch in arch_list:
-            print("build_list_{} = [".format(arch), file=fh)
+            arch_asm_files[arch] = []
+            print("build_list_linux_{} = [".format(arch), file=fh)
             for f in sorted(arch_files_map[arch]):
                 f_name = os.path.basename(f)
+                if f_name in FNAMES_TO_SKIP:
+                    continue
                 if f_name in common_files_names:
                     continue
                 print("  '{}',".format(f_name), file=fh)
+                if not f_name.endswith(".c"):
+                    if f not in arch_asm_files[arch]:
+                        arch_asm_files[arch].append(f)
             print("]", file=fh)
             print("", file=fh)
+
+    if def_file is not None:
+        shutil.copyfile(def_file, os.path.join(makedir, os.path.basename(def_file)))
+
+    global ASM_COPIED
+    if not ASM_COPIED:
+        ASM_COPIED = 1
+        for arch in arch_list:
+            for af in arch_asm_files[arch]:
+                src = os.path.normpath(os.path.join(DIR_HERE, 'obj/openssl-src-{}'.format(arch), af))
+                dst = os.path.join(DIR_OPENSSL_SUBMODULE_VENDOR, af)
+                print("Copy: {} >>> {}".format(src, dst))
+                shutil.copyfile(src, dst)
 
 
 def cleanup_dir(dir_name):
@@ -210,23 +244,37 @@ def gen_headers(h_dir, inc_prefix, arch_map):
         for h_name in options:
             h_ref = get_ini_conf_string1(arch_map[arch], 'HEADERS', h_name)
             all_headers[h_name] = h_ref
-            for h_name, h_ref in all_headers.items():
-                h_path = os.path.join(h_dir, h_name)
-                with open(h_path, mode='wt') as fh:
-                    print('#include "{}/{}"'.format(inc_prefix, h_ref), file=fh, end='')
+
+    for h_name, h_ref in all_headers.items():
+        h_path = os.path.join(h_dir, h_name)
+        with open(h_path, mode='wt') as fh:
+            print('#include "{}/{}"'.format(inc_prefix, h_ref), file=fh, end='')
+
+    shutil.copyfile(os.path.join(DIR_HERE, 'tweaks', 'opensslconf.h'), os.path.join(h_dir, 'opensslconf.h'))
 
 
 def main():
-    x86_cfg = load_ini_config(PLAYBACK_INI_x86)
-    x86_64_cfg = load_ini_config(PLAYBACK_INI_x86_64)
     arch_map = {}
-    arch_map['x86'] = x86_cfg
-    arch_map['x86_64'] = x86_64_cfg
+    arch_list = ABI_ALL.split(',')
+    for arch in arch_list:
+        playback_ini_config = os.path.normpath(os.path.join(DIR_HERE, 'obj/bin-trace/{}/build.ini'.format(arch)))
+        arch_map[arch] = load_ini_config(playback_ini_config)
 
     gen_headers(OPENSSL_HEADERS_DIR, '../../vendor', arch_map)
 
-    crypto_incd = ['../../include', '../../vendor', '../../vendor/crypto', '../../../zlib/include']
-    gen_makefile_for_static_lib('crypto', 'crypto_static', '../../vendor', crypto_incd, CRYPTO_STATIC_MAKE_DIR, arch_map)
+    crypto_incd = [
+        '../../include',
+        '../../../zlib/include',
+        '../../vendor',
+        '../../vendor/crypto',
+        '../../vendor/crypto/aes',
+        '../../vendor/crypto/asn1',
+        '../../vendor/crypto/evp',
+        '../../vendor/crypto/modes',
+    ]
+    crypto_def_file = os.path.join(DIR_HERE, 'tweaks', 'libcrypto.def')
+    gen_makefile_for_lib('crypto', 'crypto_static', '../../vendor', crypto_incd, CRYPTO_STATIC_MAKE_DIR, arch_map)
+    gen_makefile_for_lib('crypto', 'crypto', '../../vendor', crypto_incd, CRYPTO_SHARED_MAKE_DIR, arch_map, crypto_def_file)
 
 
 

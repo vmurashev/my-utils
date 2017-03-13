@@ -4,8 +4,6 @@ DIR_HERE=$(cd $(dirname $0) && pwd)
 DIR_OBJ="$DIR_HERE/obj"
 mkdir -p $DIR_OBJ
 
-ABI_ALL='x86,x86_64'
-
 source "$DIR_HERE/conf.sh"
 
 ZLIB_ARC_NAME=$(basename $ZLIB_URL)
@@ -105,42 +103,17 @@ build_target_openssl ()
         chmod +x $XT_EXE_WRAPPER
     done
 
-    # script to init obj-tree
-    local OBJTREE_WRAPPER=$BUILDDIR/mkobjtree.sh
-    {
-        echo '#!/bin/bash -e'
-        echo 'DIR_HERE=$(cd $(dirname $0) && pwd)'
-        echo "OPENSSL_SOURCE=\"$OPENSSL_SRCDIR\""
-        echo 'mkdir -p $DIR_HERE/objtree'
-        echo 'cd $DIR_HERE/objtree'
-        echo 'echo "Preparing OpenSSL obj-tree in $(pwd) ..."'
-        echo '(cd $OPENSSL_SOURCE; find . -type f) | while read F; do'
-        echo '    mkdir -p $(dirname $F)'
-        echo '    rm -f $F'
-        echo '    if [ "$F" = "./crypto/opensslconf.h" ]; then'
-        echo '        cp -fpH $OPENSSL_SOURCE/crypto/opensslconf.h ./crypto'
-        echo '    elif [ "$F" = "./crypto/cryptlib.h" ]; then'
-        echo '        cp -fpH $OPENSSL_SOURCE/crypto/cryptlib.h ./crypto'
-        echo '    elif [ "$F" = "./Makefile.org" ]; then'
-        echo '        cp -fpH $OPENSSL_SOURCE/Makefile.org .'
-        echo '    else'
-        echo '        ln -s $OPENSSL_SOURCE/$F $F'
-        echo '    fi'
-        echo 'done'
-    } >$OBJTREE_WRAPPER
-
-    chmod +x $OBJTREE_WRAPPER
-
     local OPENSSL_OPTIONS='shared zlib-dynamic -DOPENSSL_NO_DEPRECATED'
+#    local OPENSSL_GEN_EXPORT_OPTIONS="enable-static-engine no-ec_nistp_64_gcc_128 no-gmp no-jpake no-krb5 no-libunbound no-md2 no-rc5 no-rfc3779 no-sctp no-ssl-trace no-ssl2 no-store no-unit-test no-weak-ssl-ciphers"
+
 
     local BUILD_WRAPPER=$BUILDDIR/build.sh
     {
         echo '#!/bin/bash -e'
-        echo 'DIR_HERE=$(cd $(dirname $0) && pwd)'
         echo "export PATH=\"$BIN_WRAP_DIR:\$PATH\""
-        echo 'cd $DIR_HERE'
-        echo './mkobjtree.sh'
-        echo 'cd objtree'
+        echo "cd $OPENSSL_SRCDIR"
+#        echo "perl util/mkdef.pl crypto $OPENSSL_GEN_EXPORT_OPTIONS > ../libcrypto.def"
+#        echo "perl util/mkdef.pl ssl $OPENSSL_GEN_EXPORT_OPTIONS > ../libssl.def"
         echo "perl -p -i -e 's/^(install:.*)\\binstall_docs\\b(.*)$/\$1 \$2/g' Makefile.org"
         echo "perl ./Configure --cross-compile-prefix=$XT_PREFIX $OPENSSL_OPTIONS $OPENSSL_TARGET"
         echo "cp -t include $DIR_OBJ/zlib/zlib.h"
@@ -158,7 +131,11 @@ build_target_openssl ()
 collect_openssl_headers ()
 {
     local ABI=$1
-    local HEADERS_DIR="$DIR_OBJ/build/$ABI/objtree/include/openssl"
+    local HEADERS_DIR="$DIR_OBJ/openssl-src-$ABI/include/openssl"
+    if [ ! -d "$HEADERS_DIR" ]; then
+        echo "ERROR: Directory not found '$HEADERS_DIR'"
+        exit 1
+    fi
     local BIN_TRACE_DIR="$DIR_OBJ/bin-trace/$ABI"
     local FILE_WITH_HEADERS_LIST="$BIN_TRACE_DIR/headers.list"
     local TGT
