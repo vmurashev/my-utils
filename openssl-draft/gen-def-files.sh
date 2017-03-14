@@ -54,4 +54,6 @@ if [ -f $SSL_DEF ]; then
     echo "Genarated: $SSL_DEF"
 fi
 
+$DIR_HERE/gen-export-table-h.py --def-file "$CRYPTO_DEF" --h-output "$DIR_OBJ/crypto_export_table.h"
+
 echo "Done!"
