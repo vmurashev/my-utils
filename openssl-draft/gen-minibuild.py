@@ -153,11 +153,21 @@ def gen_makefile_for_lib(lib_ini_name, lib_make_name, vendor_prefix, incd, maked
             print("exports_def_file = '{}'".format(os.path.basename(def_file)), file=fh)
             print("", file=fh)
 
+        if lib_make_name == 'crypto':
+            print("prebuilt_lib_list_linux = ['dl']", file=fh)
+            print("", file=fh)
+            print("lib_list = ['../../../zlib']", file=fh)
+            print("", file=fh)
+
         print("", file=fh)
         print("src_search_dir_list = [", file=fh)
         for dir_name in sorted(dir_names):
             dir_name_norm = '/'.join([vendor_prefix, dir_name])
             print("  '{}',".format(dir_name_norm), file=fh)
+        if lib_make_name.startswith('crypto'):
+            for dir_name in ['../../vendor/engines']:
+                print("  '{}',".format(dir_name), file=fh)
+
         print("]", file=fh)
         print("", file=fh)
 
@@ -190,6 +200,11 @@ def gen_makefile_for_lib(lib_ini_name, lib_make_name, vendor_prefix, incd, maked
             if f_name in FNAMES_TO_SKIP:
                 continue
             print("  '{}',".format(f_name), file=fh)
+
+        if lib_make_name.startswith('crypto'):
+            for f_name in ['e_4758cca.c', 'e_aep.c', 'e_atalla.c', 'e_cswift.c', 'e_chil.c', 'e_nuron.c', 'e_sureware.c', 'e_ubsec.c', 'e_padlock.c' ]:
+                print("  '{}',".format(f_name), file=fh)
+
         print("]", file=fh)
         print("", file=fh)
 
@@ -208,6 +223,7 @@ def gen_makefile_for_lib(lib_ini_name, lib_make_name, vendor_prefix, incd, maked
                         arch_asm_files[arch].append(f)
             print("]", file=fh)
             print("", file=fh)
+
 
     if def_file is not None:
         shutil.copyfile(def_file, os.path.join(makedir, os.path.basename(def_file)))
@@ -272,7 +288,9 @@ def main():
         '../../vendor/crypto/evp',
         '../../vendor/crypto/modes',
     ]
+
     crypto_def_file = os.path.join(DIR_HERE, 'tweaks', 'libcrypto.def')
+
     gen_makefile_for_lib('crypto', 'crypto_static', '../../vendor', crypto_incd, CRYPTO_STATIC_MAKE_DIR, arch_map)
     gen_makefile_for_lib('crypto', 'crypto', '../../vendor', crypto_incd, CRYPTO_SHARED_MAKE_DIR, arch_map, crypto_def_file)
 
