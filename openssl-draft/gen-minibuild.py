@@ -42,8 +42,6 @@ FNAMES_TO_SKIP = ['cversion.c']
 if not os.path.isfile(os.path.join(DIR_PROJECT_ROOT, 'minibuild.ini')):
     if not os.path.isdir(DIR_OPENSSL_SUBMODULE_VENDOR):
         os.makedirs(DIR_OPENSSL_SUBMODULE_VENDOR)
-    if not os.path.isdir(CRYPTO_STATIC_MAKE_DIR):
-        os.makedirs(CRYPTO_STATIC_MAKE_DIR)
     subprocess.check_call(['tar', 'xf', os.path.join(DIR_HERE, 'obj', os.path.basename(OPENSSL_URL)), '--strip-components=1', '-C', DIR_OPENSSL_SUBMODULE_VENDOR])
     subprocess.check_call(['git', 'clone', 'https://github.com/vmurashev/zlib.git'], cwd=DIR_PROJECT_ROOT)
     with open(os.path.join(DIR_PROJECT_ROOT, 'minibuild.ini'), mode='wt') as fh:
@@ -140,6 +138,9 @@ def gen_makefile_for_lib(lib_ini_name, lib_make_name, vendor_prefix, incd, maked
         if '/' in f:
             dir_name = os.path.dirname(f)
             dir_names.add(dir_name)
+
+    if not os.path.isdir(makedir):
+        os.makedirs(makedir)
 
     with open(os.path.join(makedir, 'minibuild.mk'), mode='wt') as fh:
         if is_shared:
