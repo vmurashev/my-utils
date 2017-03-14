@@ -103,8 +103,7 @@ build_target_openssl ()
         chmod +x $XT_EXE_WRAPPER
     done
 
-    local OPENSSL_OPTIONS='shared zlib-dynamic -DOPENSSL_NO_DEPRECATED'
-#    local OPENSSL_GEN_EXPORT_OPTIONS="enable-static-engine no-ec_nistp_64_gcc_128 no-gmp no-jpake no-krb5 no-libunbound no-md2 no-rc5 no-rfc3779 no-sctp no-ssl-trace no-ssl2 no-store no-unit-test no-weak-ssl-ciphers"
+    local OPENSSL_OPTIONS='shared zlib-dynamic no-gost -DOPENSSL_NO_DEPRECATED'
 
 
     local BUILD_WRAPPER=$BUILDDIR/build.sh
@@ -112,8 +111,6 @@ build_target_openssl ()
         echo '#!/bin/bash -e'
         echo "export PATH=\"$BIN_WRAP_DIR:\$PATH\""
         echo "cd $OPENSSL_SRCDIR"
-#        echo "perl util/mkdef.pl crypto $OPENSSL_GEN_EXPORT_OPTIONS > ../libcrypto.def"
-#        echo "perl util/mkdef.pl ssl $OPENSSL_GEN_EXPORT_OPTIONS > ../libssl.def"
         echo "perl -p -i -e 's/^(install:.*)\\binstall_docs\\b(.*)$/\$1 \$2/g' Makefile.org"
         echo "perl ./Configure --cross-compile-prefix=$XT_PREFIX $OPENSSL_OPTIONS $OPENSSL_TARGET"
         echo "cp -t include $DIR_OBJ/zlib/zlib.h"

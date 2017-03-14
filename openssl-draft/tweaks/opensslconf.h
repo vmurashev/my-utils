@@ -14,6 +14,9 @@ extern "C" {
 #ifndef OPENSSL_NO_GMP
 # define OPENSSL_NO_GMP
 #endif
+#ifndef OPENSSL_NO_GOST
+# define OPENSSL_NO_GOST
+#endif
 #ifndef OPENSSL_NO_JPAKE
 # define OPENSSL_NO_JPAKE
 #endif
@@ -70,6 +73,9 @@ extern "C" {
 # endif
 # if defined(OPENSSL_NO_GMP) && !defined(NO_GMP)
 #  define NO_GMP
+# endif
+# if defined(OPENSSL_NO_GOST) && !defined(NO_GOST)
+#  define NO_GOST
 # endif
 # if defined(OPENSSL_NO_JPAKE) && !defined(NO_JPAKE)
 #  define NO_JPAKE
