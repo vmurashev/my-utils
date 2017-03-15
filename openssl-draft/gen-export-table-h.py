@@ -36,7 +36,7 @@ def load_export_list_from_def_file(def_file):
     return export_list
 
 
-def gen_export_table_h(def_file, h_output):
+def gen_export_table_h(lib_name, def_file, h_output):
     func_list = load_export_list_from_def_file(def_file)
 
     with open(h_output, mode='wt') as fh:
@@ -44,7 +44,7 @@ def gen_export_table_h(def_file, h_output):
         print('', file=fh)
         print('#include <stddef.h>', file=fh)
         print('', file=fh)
-        print("static const char* EXPORT_TABLE[] = {", file=fh)
+        print("static const char* {}_EXPORT_TABLE[] = {{".format(lib_name.upper()), file=fh)
         for func_name in func_list:
             print('  "{}",'.format(func_name), file=fh)
         print('  NULL', file=fh)
@@ -55,7 +55,8 @@ def gen_export_table_h(def_file, h_output):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--def-file', required=True)
-    parser.add_argument('--h-output', required=True)
+    parser.add_argument('--lib-name', nargs=1, choices=['crypto', 'ssl'], required=True)
+    parser.add_argument('--def-file', nargs=1, required=True)
+    parser.add_argument('--h-output', nargs=1, required=True)
     args = parser.parse_args()
-    gen_export_table_h(args.def_file, args.h_output)
+    gen_export_table_h(args.lib_name[0], args.def_file[0], args.h_output[0])
