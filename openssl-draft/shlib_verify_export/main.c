@@ -23,19 +23,25 @@ int main(int argc, char** argv)
     }
     if (!shlib_crypto_path || !shlib_crypto_path[0])
     {
-        printf("ERROR: crypto shlib path is not given as first arument of command line.\n");
+        printf("ERROR: 'crypto' shlib path is not given as first arument of command line.\n");
         goto exit;
     }
     if (!shlib_ssl_path || !shlib_ssl_path[0])
     {
-        printf("ERROR: ssl shlib path is not given as second arument of command line.\n");
+        printf("ERROR: 'ssl' shlib path is not given as second arument of command line.\n");
         goto exit;
     }
 
-    int omit_crypto = strcmp(shlib_crypto_path, "-");
-    int omit_ssl = strcmp(shlib_ssl_path, "-");
+    int verify_crypto = (strcmp(shlib_crypto_path, "-") != 0);
+    int verify_ssl = (strcmp(shlib_ssl_path, "-") != 0);
 
-    if (!omit_crypto)
+    if (!verify_crypto && !verify_ssl)
+    {
+        printf("ERROR: Nothing to verify.\n");
+        goto exit;
+    }
+
+    if (verify_crypto)
     {
         shlib_crypto = dlopen(shlib_crypto_path, RTLD_LAZY);
         if (shlib_crypto == NULL)
@@ -44,10 +50,11 @@ int main(int argc, char** argv)
             if (lasterr == NULL)
                  lasterr = NULL_PTR_STR;
             printf("ERROR: cannot load library: '%s', dlerror: %s\n", shlib_crypto_path, lasterr);
+            goto exit;
         }
     }
 
-    if (!omit_ssl)
+    if (verify_ssl)
     {
         shlib_ssl = dlopen(shlib_ssl_path, RTLD_LAZY);
         if (shlib_ssl == NULL)
@@ -56,8 +63,11 @@ int main(int argc, char** argv)
             if (lasterr == NULL)
                  lasterr = NULL_PTR_STR;
             printf("ERROR: cannot load library: '%s', dlerror: %s\n", shlib_ssl_path, lasterr);
+            goto exit;
         }
     }
+
+    int total_failures_count = 0;
 
     if (shlib_crypto != NULL)
     {
@@ -79,6 +89,7 @@ int main(int argc, char** argv)
                 if (lasterr == NULL)
                      lasterr = NULL_PTR_STR;
                 printf("    BAD SYMBOL: '%s', dlerror: %s\n", sym, lasterr);
+                total_failures_count += 1;
             }
             else
             {
@@ -108,6 +119,7 @@ int main(int argc, char** argv)
                 if (lasterr == NULL)
                      lasterr = NULL_PTR_STR;
                 printf("    BAD SYMBOL: '%s', dlerror: %s\n", sym, lasterr);
+                total_failures_count += 1;
             }
             else
             {
@@ -116,6 +128,11 @@ int main(int argc, char** argv)
         }
         printf("SYMBOLS: good / bad / total --- %d / %d / %d\n", good_count, bad_count, idx);
     }
+
+    if (total_failures_count == 0)
+        retcode = 0;
+    else
+        retcode = 1;
 
 exit:
   if (shlib_crypto != NULL)

@@ -22,21 +22,6 @@ CRYPTO_STATIC_MAKE_DIR = os.path.join(DIR_OPENSSL_SUBMODULE, 'build/crypto_stati
 CRYPTO_SHARED_MAKE_DIR = os.path.join(DIR_OPENSSL_SUBMODULE, 'build/crypto')
 
 
-PROJECT_MAKE_CONFIG = """
-[MINIBUILD]
-supported-platforms = linux
-toolset-linux = GCC-CROSSTOOL-i686 GCC-CROSSTOOL-x86_64
-
-[GCC-CROSSTOOL-i686]
-module = gcc
-config = {'x-tools':{'arch':['x86'],'package_path':'~/x-tools/i686-unknown-linux-gnu','prefix':'i686-unknown-linux-gnu-'}}
-
-[GCC-CROSSTOOL-x86_64]
-module = gcc
-config = {'x-tools':{'arch':['x86_64'],'package_path':'~/x-tools/x86_64-unknown-linux-gnu','prefix':'x86_64-unknown-linux-gnu-'}}
-"""
-
-
 FNAMES_TO_SKIP = ['cversion.c']
 
 if not os.path.isfile(os.path.join(DIR_PROJECT_ROOT, 'minibuild.ini')):
@@ -44,11 +29,12 @@ if not os.path.isfile(os.path.join(DIR_PROJECT_ROOT, 'minibuild.ini')):
         os.makedirs(DIR_OPENSSL_SUBMODULE_VENDOR)
     subprocess.check_call(['tar', 'xf', os.path.join(DIR_HERE, 'obj', os.path.basename(OPENSSL_URL)), '--strip-components=1', '-C', DIR_OPENSSL_SUBMODULE_VENDOR])
     subprocess.check_call(['git', 'clone', 'https://github.com/vmurashev/zlib.git'], cwd=DIR_PROJECT_ROOT)
-    with open(os.path.join(DIR_PROJECT_ROOT, 'minibuild.ini'), mode='wt') as fh:
-        print(PROJECT_MAKE_CONFIG, file=fh)
+    shutil.copyfile(os.path.join(DIR_HERE, 'shlib_verify_export', 'minibuild.ini'), os.path.join(DIR_PROJECT_ROOT, 'minibuild.ini'))
 
 
 def load_ini_config(path):
+    if not os.path.isfile(path):
+        raise Exception("File not found: '{}'".format(path))
     config = configparser.RawConfigParser()
     config.read(path)
     return config
