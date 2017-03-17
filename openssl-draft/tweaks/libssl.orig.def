@@ -1,4 +1,8 @@
-LIBRARY
+;
+; Definition file for the DLL version of the ssl library from OpenSSL
+;
+
+LIBRARY         ssl32	
 
 EXPORTS
     BIO_f_ssl                               @121
@@ -321,3 +325,4 @@ EXPORTS
     TLSv1_server_method                     @171
     d2i_SSL_SESSION                         @119
     i2d_SSL_SESSION                         @120
+

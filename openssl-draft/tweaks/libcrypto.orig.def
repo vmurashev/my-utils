@@ -1,4 +1,8 @@
-LIBRARY
+;
+; Definition file for the DLL version of the crypto library from OpenSSL
+;
+
+LIBRARY         crypto32	
 
 EXPORTS
     SSLeay                                  @1
@@ -353,15 +357,18 @@ EXPORTS
     BN_BLINDING_create_param                @3705
     BN_BLINDING_free                        @981
     BN_BLINDING_get_flags                   @3725
+    BN_BLINDING_get_thread_id               @3340
     BN_BLINDING_invert                      @974
     BN_BLINDING_invert_ex                   @3337
     BN_BLINDING_new                         @980
     BN_BLINDING_set_flags                   @3411
+    BN_BLINDING_set_thread_id               @3770
     BN_BLINDING_thread_id                   @4239
     BN_BLINDING_update                      @975
     BN_CTX_end                              @2241
     BN_CTX_free                             @110
     BN_CTX_get                              @2243
+    BN_CTX_init                             @1135
     BN_CTX_new                              @111
     BN_CTX_start                            @2242
     BN_GENCB_call                           @3474
@@ -421,17 +428,21 @@ EXPORTS
     BN_free                                 @129
     BN_from_montgomery                      @130
     BN_gcd                                  @131
+    BN_generate_prime                       @132
     BN_generate_prime_ex                    @3710
     BN_get0_nist_prime_192                  @3358
     BN_get0_nist_prime_224                  @3471
     BN_get0_nist_prime_256                  @3629
     BN_get0_nist_prime_384                  @3331
     BN_get0_nist_prime_521                  @3708
+    BN_get_params                           @1249
     BN_get_word                             @133
     BN_hex2bn                               @117
     BN_init                                 @1095
     BN_is_bit_set                           @134
+    BN_is_prime                             @135
     BN_is_prime_ex                          @3503
+    BN_is_prime_fasttest                    @2240
     BN_is_prime_fasttest_ex                 @3718
     BN_kronecker                            @3011
     BN_lshift1                              @137
@@ -483,6 +494,7 @@ EXPORTS
     BN_rshift                               @158
     BN_set_bit                              @160
     BN_set_negative                         @3635
+    BN_set_params                           @1248
     BN_set_word                             @161
     BN_sqr                                  @162
     BN_sub                                  @163
@@ -736,6 +748,7 @@ EXPORTS
     CRYPTO_get_ex_data                      @1005
     CRYPTO_get_ex_data_implementation       @3135
     CRYPTO_get_ex_new_index                 @1041
+    CRYPTO_get_id_callback                  @183
     CRYPTO_get_lock_name                    @184
     CRYPTO_get_locked_mem_ex_functions      @2781
     CRYPTO_get_locked_mem_functions         @1511
@@ -774,6 +787,7 @@ EXPORTS
     CRYPTO_set_dynlock_lock_callback        @2416
     CRYPTO_set_ex_data                      @1007
     CRYPTO_set_ex_data_implementation       @2841
+    CRYPTO_set_id_callback                  @196
     CRYPTO_set_locked_mem_ex_functions      @2770
     CRYPTO_set_locked_mem_functions         @1510
     CRYPTO_set_locking_callback             @197
@@ -782,6 +796,7 @@ EXPORTS
     CRYPTO_set_mem_ex_functions             @2778
     CRYPTO_set_mem_functions                @198
     CRYPTO_strdup                           @4093
+    CRYPTO_thread_id                        @199
     CRYPTO_xts128_encrypt                   @4632
     Camellia_cbc_encrypt                    @3784
     Camellia_cfb128_encrypt                 @3785
@@ -839,6 +854,7 @@ EXPORTS
     DH_compute_key_padded                   @4732
     DH_free                                 @202
     DH_generate_key                         @203
+    DH_generate_parameters                  @204
     DH_generate_parameters_ex               @3713
     DH_get_1024_160                         @4685
     DH_get_2048_224                         @4691
@@ -877,6 +893,7 @@ EXPORTS
     DSA_dup_DH                              @1871
     DSA_free                                @209
     DSA_generate_key                        @210
+    DSA_generate_parameters                 @211
     DSA_generate_parameters_ex              @3687
     DSA_get_default_method                  @1941
     DSA_get_ex_data                         @1895
@@ -1134,6 +1151,7 @@ EXPORTS
     ENGINE_load_cryptodev                   @2617
     ENGINE_load_cswift                      @3027
     ENGINE_load_dynamic                     @2547
+    ENGINE_load_gost                        @4198
     ENGINE_load_nuron                       @3055
     ENGINE_load_openssl                     @2657
     ENGINE_load_padlock                     @3532
@@ -1277,6 +1295,7 @@ EXPORTS
     ERR_put_error                           @252
     ERR_reason_error_string                 @253
     ERR_release_err_state_table             @3247
+    ERR_remove_state                        @254
     ERR_remove_thread_state                 @4445
     ERR_set_error_data                      @1082
     ERR_set_implementation                  @2848
@@ -2303,6 +2322,7 @@ EXPORTS
     RSA_check_key                           @1869
     RSA_flags                               @956
     RSA_free                                @484
+    RSA_generate_key                        @485
     RSA_generate_key_ex                     @3686
     RSA_get_default_method                  @1848
     RSA_get_ex_data                         @1029
@@ -3170,6 +3190,7 @@ EXPORTS
     b2i_PublicKey_bio                       @4172
     bn_add_words                            @1039
     bn_div_words                            @704
+    bn_dup_expand                           @2920
     bn_expand2                              @705
     bn_mul_add_words                        @706
     bn_mul_words                            @707
@@ -3676,3 +3697,4 @@ EXPORTS
     v2i_GENERAL_NAMES                       @1236
     v2i_GENERAL_NAME                        @1231
     v2i_GENERAL_NAME_ex                     @3612
+

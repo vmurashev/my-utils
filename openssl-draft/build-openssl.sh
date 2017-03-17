@@ -103,8 +103,7 @@ build_target_openssl ()
         chmod +x $XT_EXE_WRAPPER
     done
 
-    local OPENSSL_OPTIONS='shared zlib-dynamic no-gost -DOPENSSL_NO_DEPRECATED'
-
+    local OPENSSL_OPTIONS='shared zlib-dynamic no-gost -DOPENSSL_NO_DEPRECATED -DOPENSSL_NO_CAPIENG'
 
     local BUILD_WRAPPER=$BUILDDIR/build.sh
     {

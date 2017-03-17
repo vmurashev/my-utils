@@ -34,27 +34,48 @@ echo "tarball '$DIR_OBJ/$OPENSSL_ARC_NAME' extracted in '$OPENSSL_SRCDIR'"
 
 OPENSSL_GEN_EXPORT_OPTIONS="enable-static-engine"
 
-CRYPTO_DEF="$DIR_HERE/tweaks/libcrypto.def"
-SSL_DEF="$DIR_HERE/tweaks/libssl.def"
+CRYPTO_DEF="$DIR_HERE/tweaks/libcrypto.orig.def"
+CRYPTO_DEF_OUTPUT="$DIR_HERE/tweaks/libcrypto.def"
+CRYPTO_TEST_EXPORT_H="$DIR_HERE/shlib_verify_export/crypto_export_table.h"
 
-rm -rf $CRYPTO_DEF
-rm -rf $SSL_DEF
+SSL_DEF="$DIR_HERE/tweaks/libssl.orig.def"
+SSL_DEF_OUTPUT="$DIR_HERE/tweaks/libssl.def"
+SSL_TEST_EXPORT_H="$DIR_HERE/shlib_verify_export/ssl_export_table.h"
+
+rm -rf "$CRYPTO_DEF" "$CRYPTO_DEF_OUTPUT" "$CRYPTO_TEST_EXPORT_H"
+rm -rf "$SSL_DEF" "$SSL_DEF_OUTPUT" "$SSL_TEST_EXPORT_H"
 
 (
     cd $OPENSSL_SRCDIR
-    perl util/mkdef.pl crypto $OPENSSL_GEN_EXPORT_OPTIONS > $DIR_HERE/tweaks/libcrypto.def
-    perl util/mkdef.pl ssl $OPENSSL_GEN_EXPORT_OPTIONS > $DIR_HERE/tweaks/libssl.def
+    perl util/mkdef.pl crypto $OPENSSL_GEN_EXPORT_OPTIONS > $CRYPTO_DEF
+    perl util/mkdef.pl ssl $OPENSSL_GEN_EXPORT_OPTIONS > $SSL_DEF
 )
 
-if [ -f $CRYPTO_DEF ]; then
+$DIR_HERE/gen-export-table-h.py --lib-name crypto --def-file "$CRYPTO_DEF" --def-output "$CRYPTO_DEF_OUTPUT" --h-output "$CRYPTO_TEST_EXPORT_H"
+$DIR_HERE/gen-export-table-h.py --lib-name ssl    --def-file "$SSL_DEF"    --def-output "$SSL_DEF_OUTPUT"    --h-output "$SSL_TEST_EXPORT_H"
+
+if [ -f "$CRYPTO_DEF" ]; then
     echo "Genarated: $CRYPTO_DEF"
 fi
 
-if [ -f $SSL_DEF ]; then
+if [ -f "$CRYPTO_DEF_OUTPUT" ]; then
+    echo "Genarated: $CRYPTO_DEF_OUTPUT"
+fi
+
+if [ -f "$CRYPTO_TEST_EXPORT_H" ]; then
+    echo "Genarated: $CRYPTO_TEST_EXPORT_H"
+fi
+
+if [ -f "$SSL_DEF" ]; then
     echo "Genarated: $SSL_DEF"
 fi
 
-$DIR_HERE/gen-export-table-h.py --lib-name crypto --def-file "$CRYPTO_DEF" --h-output "$DIR_HERE/shlib_verify_export/crypto_export_table.h"
-$DIR_HERE/gen-export-table-h.py --lib-name ssl    --def-file "$SSL_DEF"    --h-output "$DIR_HERE/shlib_verify_export/ssl_export_table.h"
+if [ -f "$SSL_DEF_OUTPUT" ]; then
+    echo "Genarated: $SSL_DEF_OUTPUT"
+fi
+
+if [ -f "SSL_TEST_EXPORT_H" ]; then
+    echo "Genarated: $SSL_TEST_EXPORT_H"
+fi
 
 echo "Done!"
