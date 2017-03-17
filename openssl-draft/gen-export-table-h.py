@@ -23,6 +23,7 @@ CRYPTO_DEPRECATED_API = [
 
 CRYPTO_DISABLED_API = [
     'ENGINE_load_gost',
+    'ENGINE_load_capi',
 ]
 
 def load_export_list_from_def_file(lib_name, def_file):
