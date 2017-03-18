@@ -23,8 +23,10 @@ OPENSSL_HEADERS_DIR = os.path.join(DIR_OPENSSL_SUBMODULE, 'include/openssl')
 CRYPTO_STATIC_MAKE_DIR = os.path.join(DIR_OPENSSL_SUBMODULE, 'build/crypto_static')
 CRYPTO_SHARED_MAKE_DIR = os.path.join(DIR_OPENSSL_SUBMODULE, 'build/crypto')
 
+SSL_STATIC_MAKE_DIR = os.path.join(DIR_OPENSSL_SUBMODULE, 'build/ssl_static')
+SSL_SHARED_MAKE_DIR = os.path.join(DIR_OPENSSL_SUBMODULE, 'build/ssl')
 
-FNAMES_TO_SKIP = ['cversion.c']
+APPS_MAKE_DIR = os.path.join(DIR_OPENSSL_SUBMODULE, 'build/apps')
 
 if not os.path.isfile(os.path.join(DIR_PROJECT_ROOT, 'minibuild.ini')):
     if not os.path.isdir(DIR_OPENSSL_SUBMODULE_VENDOR):
@@ -156,6 +158,13 @@ def gen_makefile_for_lib(lib_ini_name, lib_make_name, vendor_prefix, incd, maked
             print("lib_list = ['../../../zlib']", file=fh)
             print("", file=fh)
 
+        if lib_make_name == 'ssl':
+            print("", file=fh)
+            print("lib_list = ['../crypto']", file=fh)
+            print("", file=fh)
+            print("symbol_visibility_default = 1", file=fh)
+            print("", file=fh)
+
         print("", file=fh)
         print("src_search_dir_list = [", file=fh)
         for dir_name in sorted(dir_names):
@@ -172,6 +181,8 @@ def gen_makefile_for_lib(lib_ini_name, lib_make_name, vendor_prefix, incd, maked
         print("definitions = [", file=fh)
         for d in sorted(common_defs):
             print("  '{}',".format(d), file=fh)
+        if lib_make_name.startswith('crypto'):
+            print("  'NO_WINDOWS_BRAINDEATH'", file=fh)
         print("]", file=fh)
         print("", file=fh)
 
@@ -194,8 +205,6 @@ def gen_makefile_for_lib(lib_ini_name, lib_make_name, vendor_prefix, incd, maked
         print("", file=fh)
         print("build_list = [", file=fh)
         for f_name in sorted(common_files_names):
-            if f_name in FNAMES_TO_SKIP:
-                continue
             print("  '{}',".format(f_name), file=fh)
 
         if lib_make_name.startswith('crypto'):
@@ -210,8 +219,6 @@ def gen_makefile_for_lib(lib_ini_name, lib_make_name, vendor_prefix, incd, maked
             print("build_list_linux_{} = [".format(arch), file=fh)
             for f in sorted(arch_files_map[arch]):
                 f_name = os.path.basename(f)
-                if f_name in FNAMES_TO_SKIP:
-                    continue
                 if f_name in common_files_names:
                     continue
                 print("  '{}',".format(f_name), file=fh)
@@ -286,11 +293,24 @@ def main():
         '../../vendor/crypto/modes',
     ]
 
+    ssl_incd = [
+        '../../include',
+        '../../vendor',
+        '../../vendor/crypto',
+    ]
+
     crypto_def_file = os.path.join(DIR_HERE, 'tweaks', 'libcrypto.def')
+    ssl_def_file = os.path.join(DIR_HERE, 'tweaks', 'libssl.def')
 
     gen_makefile_for_lib('crypto', 'crypto_static', '../../vendor', crypto_incd, CRYPTO_STATIC_MAKE_DIR, arch_map)
     gen_makefile_for_lib('crypto', 'crypto', '../../vendor', crypto_incd, CRYPTO_SHARED_MAKE_DIR, arch_map, crypto_def_file)
 
+    gen_makefile_for_lib('ssl', 'ssl_static', '../../vendor', ssl_incd, SSL_STATIC_MAKE_DIR, arch_map)
+    gen_makefile_for_lib('ssl', 'ssl', '../../vendor', ssl_incd, SSL_SHARED_MAKE_DIR, arch_map, ssl_def_file)
+
+    if not os.path.isdir(APPS_MAKE_DIR):
+        os.makedirs(APPS_MAKE_DIR)
+    shutil.copyfile(os.path.join(DIR_HERE, 'apps', 'minibuild.mk'), os.path.join(APPS_MAKE_DIR, 'minibuild.mk'))
 
 
 if __name__ == '__main__':

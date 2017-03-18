@@ -64,10 +64,6 @@ extern "C" {
 # define OPENSSL_NO_DYNAMIC_ENGINE
 #endif
 
-#ifndef OPENSSL_NO_CAPIENG
-# define OPENSSL_NO_CAPIENG
-#endif
-
 /* The OPENSSL_NO_* macros are also defined as NO_* if the application
    asks for it.  This is a transient feature that is provided for those
    who haven't had the time to do the appropriate changes in their
