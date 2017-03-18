@@ -1129,6 +1129,7 @@ EXPORTS
     ENGINE_load_aep                         @3210
     ENGINE_load_atalla                      @3130
     ENGINE_load_builtin_engines             @2708
+    ENGINE_load_capi                        @4047
     ENGINE_load_chil                        @3075
     ENGINE_load_cryptodev                   @2617
     ENGINE_load_cswift                      @3027
@@ -1917,7 +1918,6 @@ EXPORTS
     OPENSSL_asc2uni                         @1282
     OPENSSL_cleanse                         @3245
     OPENSSL_config                          @3188
-    OPENSSL_cpuid_setup                     @4675
     OPENSSL_gmtime                          @4567
     OPENSSL_gmtime_adj                      @4568
     OPENSSL_gmtime_diff                     @4745

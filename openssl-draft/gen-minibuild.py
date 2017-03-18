@@ -12,6 +12,8 @@ DIR_HERE = os.path.normpath(os.path.abspath(os.path.dirname(__file__)))
 with open(os.path.join(DIR_HERE, 'conf.sh'), mode='rt') as conf_sh:
     exec(compile(conf_sh.read(), os.path.join(DIR_HERE, 'conf.sh'), 'exec'))
 
+CRYPTO_WINONLY_API = EXPORTS_CRYPTO_WINAPI_ONLY.split(',')
+
 DIR_PROJECT_ROOT = os.path.normpath(os.path.join(DIR_HERE, 'draft'))
 DIR_OPENSSL_SUBMODULE = os.path.join(DIR_PROJECT_ROOT, '0')
 DIR_OPENSSL_SUBMODULE_VENDOR = os.path.join(DIR_OPENSSL_SUBMODULE, 'vendor')
@@ -137,10 +139,16 @@ def gen_makefile_for_lib(lib_ini_name, lib_make_name, vendor_prefix, incd, maked
 
         if def_file is not None:
             print("", file=fh)
-            print("exports_def_file = '{}'".format(os.path.basename(def_file)), file=fh)
+            print("export_def_file = '{}'".format(os.path.basename(def_file)), file=fh)
             print("", file=fh)
 
         if lib_make_name == 'crypto':
+            print("", file=fh)
+            print("export_winapi_only = [", file=fh)
+            for symbol in CRYPTO_WINONLY_API:
+                print("  '{}',".format(symbol), file=fh)
+            print("]", file=fh)
+            print("", file=fh)
             print("symbol_visibility_default = 1", file=fh)
             print("", file=fh)
             print("prebuilt_lib_list_linux = ['dl']", file=fh)

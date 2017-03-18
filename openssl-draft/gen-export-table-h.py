@@ -1,6 +1,12 @@
 #!/usr/bin/env python3
 
 import argparse
+import os.path
+
+DIR_HERE = os.path.normpath(os.path.abspath(os.path.dirname(__file__)))
+
+with open(os.path.join(DIR_HERE, 'conf.sh'), mode='rt') as conf_sh:
+    exec(compile(conf_sh.read(), os.path.join(DIR_HERE, 'conf.sh'), 'exec'))
 
 CRYPTO_DEPRECATED_API = [
     'BN_generate_prime',
@@ -23,8 +29,10 @@ CRYPTO_DEPRECATED_API = [
 
 CRYPTO_DISABLED_API = [
     'ENGINE_load_gost',
-    'ENGINE_load_capi',
+    'OPENSSL_cpuid_setup',
 ]
+
+CRYPTO_WINONLY_API = EXPORTS_CRYPTO_WINAPI_ONLY.split(',')
 
 def load_export_list_from_def_file(lib_name, def_file):
     export_section_found = False
@@ -59,7 +67,8 @@ def load_export_list_from_def_file(lib_name, def_file):
                     if symbol in CRYPTO_DEPRECATED_API or symbol in CRYPTO_DISABLED_API:
                         symbol_enabled = False
                 if symbol_enabled:
-                    export_list.append(symbol)
+                    if symbol not in CRYPTO_WINONLY_API:
+                        export_list.append(symbol)
                     export_lines.append(line)
     if not export_section_found:
         raise Exception("'EXPORTS' section not found inside DEF file: '{}'".format(def_file))
