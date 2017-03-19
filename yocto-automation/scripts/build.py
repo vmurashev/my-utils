@@ -91,8 +91,11 @@ def build_image(poky_config):
             print('', file=fdst)
             shutil.copyfileobj(fsrc, fdst)
 
+    with open(os.path.join(dir_build, 'bitbake.target'), mode='wt') as fdst:
+        print(bitbake_target, file=fdst)
+
     print ("> Build '{0}' for arch '{1}' ...".format(bitbake_target, machine_arch))
-    subprocess.check_call([os.path.join(DIR_HERE, 'bake.sh'), bitbake_target], cwd=dir_build)
+    subprocess.check_call([os.path.join(DIR_HERE, 'bake.sh')], cwd=dir_build)
 
 
 if __name__ == '__main__':
