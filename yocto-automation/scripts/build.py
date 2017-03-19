@@ -15,6 +15,7 @@ import shutil
 
 
 POKY_URL = 'git://git.yoctoproject.org/poky'
+POKY_RELEASE = 'morty'
 
 DIR_HERE = os.path.normpath(os.path.abspath(os.path.dirname(__file__)))
 DIR_ROOT = os.path.normpath(os.path.join(DIR_HERE, '..'))
@@ -63,6 +64,8 @@ def poky_bootstrap():
     mkdir_safe(DIR_POKY)
     print ("> Clone '{0}' in '{1}'".format(POKY_URL, DIR_POKY))
     subprocess.check_call(["git", "clone", POKY_URL, "."], cwd=DIR_POKY)
+    print ("> Checkout release '{0}'".format(POKY_RELEASE))
+    subprocess.check_call(["git", "checkout", "-b", POKY_RELEASE, "origin/{0}".format(POKY_RELEASE)], cwd=DIR_POKY)
 
 
 def build_image(poky_config):
