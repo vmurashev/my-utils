@@ -70,8 +70,6 @@ def get_ini_conf_strings_optional(config, section, option):
     return get_ini_conf_strings(config, section, option)
 
 
-ASM_COPIED = 0
-
 def gen_makefile_for_lib(lib_ini_name, lib_make_name, vendor_prefix, incd, makedir, arch_map, def_file=None):
     is_shared = def_file is not None
     arch_list = sorted(arch_map.keys())
@@ -173,9 +171,12 @@ def gen_makefile_for_lib(lib_ini_name, lib_make_name, vendor_prefix, incd, maked
         if lib_make_name.startswith('crypto'):
             for dir_name in ['../../vendor/engines']:
                 print("  '{}',".format(dir_name), file=fh)
-
         print("]", file=fh)
         print("", file=fh)
+
+        if lib_make_name.startswith('crypto'):
+            for arch in arch_list:
+                print("src_search_dir_list_linux_{} = [ '{}/arch/linux-{}' ]".format(arch, vendor_prefix, arch), file=fh)
 
         print("", file=fh)
         print("definitions = [", file=fh)
@@ -232,13 +233,13 @@ def gen_makefile_for_lib(lib_ini_name, lib_make_name, vendor_prefix, incd, maked
     if def_file is not None:
         shutil.copyfile(def_file, os.path.join(makedir, os.path.basename(def_file)))
 
-    global ASM_COPIED
-    if not ASM_COPIED:
-        ASM_COPIED = 1
-        for arch in arch_list:
+    for arch in arch_list:
+        af_dst_dir = os.path.join(DIR_OPENSSL_SUBMODULE_VENDOR, 'arch/linux-{}'.format(arch))
+        if not os.path.isdir(af_dst_dir):
+            os.makedirs(af_dst_dir)
             for af in arch_asm_files[arch]:
                 src = os.path.normpath(os.path.join(DIR_HERE, 'obj/openssl-src-{}'.format(arch), af))
-                dst = os.path.join(DIR_OPENSSL_SUBMODULE_VENDOR, af)
+                dst = os.path.join(af_dst_dir, os.path.basename(af))
                 print("Copy: {} >>> {}".format(src, dst))
                 shutil.copyfile(src, dst)
 
