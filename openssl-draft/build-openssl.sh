@@ -33,7 +33,7 @@ fi
 build_target_openssl ()
 {
     local ABI=$1
-    local HOST XT_ARCH_OPT XT_DIR XT_PREFIX
+    local XT_DIR XT_PREFIX
 
     local OPENSSL_SRCDIR="$DIR_OBJ/openssl-src-$abi"
     rm -rf $OPENSSL_SRCDIR
@@ -49,18 +49,24 @@ build_target_openssl ()
 
     case $ABI in
         x86_64)
-            HOST='x86_64-linux-gnu'
-            XT_ARCH_OPT=''
             XT_DIR="$HOME/x-tools/x86_64-unknown-linux-gnu/bin"
             XT_PREFIX='x86_64-unknown-linux-gnu-'
             OPENSSL_TARGET=linux-x86_64
             ;;
         x86)
-            HOST='i686-linux-gnu'
-            XT_ARCH_OPT=''
             XT_DIR="$HOME/x-tools/i686-unknown-linux-gnu/bin"
             XT_PREFIX='i686-unknown-linux-gnu-'
             OPENSSL_TARGET=linux-elf
+            ;;
+        arm64)
+            XT_DIR="$HOME/x-tools/aarch64-unknown-linux-gnueabi/bin"
+            XT_PREFIX='aarch64-unknown-linux-gnueabi-'
+            OPENSSL_TARGET=linux-aarch64
+            ;;
+        arm)
+            XT_DIR="$HOME/x-tools/arm-unknown-linux-gnueabi/bin"
+            XT_PREFIX='arm-unknown-linux-gnueabi-'
+            OPENSSL_TARGET=linux-armv4
             ;;
         *)
             echo "ERROR: Unknown ABI: '$ABI'" && false
