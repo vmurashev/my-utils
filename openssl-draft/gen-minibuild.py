@@ -32,6 +32,9 @@ if not os.path.isfile(os.path.join(DIR_PROJECT_ROOT, 'minibuild.ini')):
     if not os.path.isdir(DIR_OPENSSL_SUBMODULE_VENDOR):
         os.makedirs(DIR_OPENSSL_SUBMODULE_VENDOR)
     subprocess.check_call(['tar', 'xf', os.path.join(DIR_HERE, 'obj', os.path.basename(OPENSSL_URL)), '--strip-components=1', '-C', DIR_OPENSSL_SUBMODULE_VENDOR])
+    subprocess.check_call("find . -name '*.s' -exec rm -f {} \;", shell=True, cwd=DIR_OPENSSL_SUBMODULE_VENDOR)
+    subprocess.check_call("find . -name '*.S' -exec rm -f {} \;", shell=True, cwd=DIR_OPENSSL_SUBMODULE_VENDOR)
+    subprocess.check_call("find . -type f -exec chmod ugo-x {} \;", shell=True, cwd=DIR_OPENSSL_SUBMODULE_VENDOR)
     subprocess.check_call(['git', 'clone', 'https://github.com/vmurashev/zlib.git'], cwd=DIR_PROJECT_ROOT)
     shutil.copyfile(os.path.join(DIR_HERE, 'shlib_verify_export', 'minibuild.ini'), os.path.join(DIR_PROJECT_ROOT, 'minibuild.ini'))
 
@@ -176,7 +179,7 @@ def gen_makefile_for_lib(lib_ini_name, lib_make_name, vendor_prefix, incd, maked
 
         if lib_make_name.startswith('crypto'):
             for arch in arch_list:
-                print("src_search_dir_list_linux_{} = [ '{}/arch/linux-{}' ]".format(arch, vendor_prefix, arch), file=fh)
+                print("src_search_dir_list_linux_{} = [ '{}/crypto/arch/linux-{}' ]".format(arch, vendor_prefix, arch), file=fh)
 
         print("", file=fh)
         print("definitions = [", file=fh)
@@ -234,7 +237,7 @@ def gen_makefile_for_lib(lib_ini_name, lib_make_name, vendor_prefix, incd, maked
         shutil.copyfile(def_file, os.path.join(makedir, os.path.basename(def_file)))
 
     for arch in arch_list:
-        af_dst_dir = os.path.join(DIR_OPENSSL_SUBMODULE_VENDOR, 'arch/linux-{}'.format(arch))
+        af_dst_dir = os.path.join(DIR_OPENSSL_SUBMODULE_VENDOR, 'crypto/arch/linux-{}'.format(arch))
         if not os.path.isdir(af_dst_dir):
             os.makedirs(af_dst_dir)
             for af in arch_asm_files[arch]:
