@@ -1,4 +1,4 @@
-LIBRARY
+LIBRARY crypto
 
 EXPORTS
     SSLeay                                  @1

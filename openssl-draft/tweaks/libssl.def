@@ -1,4 +1,4 @@
-LIBRARY
+LIBRARY ssl
 
 EXPORTS
     BIO_f_ssl                               @121

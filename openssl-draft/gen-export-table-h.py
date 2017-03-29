@@ -92,7 +92,7 @@ def gen_export_table_h(lib_name, def_file, def_output, h_output):
         print("};", file=fh)
 
     with open(def_output, mode='wt') as fh:
-        print('LIBRARY', file=fh)
+        print('LIBRARY {}'.format(lib_name), file=fh)
         print('', file=fh)
         print('EXPORTS', file=fh)
         for line in export_lines:
