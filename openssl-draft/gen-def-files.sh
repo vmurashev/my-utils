@@ -2,37 +2,9 @@
 
 DIR_HERE=$(cd $(dirname $0) && pwd)
 DIR_OBJ="$DIR_HERE/obj"
-mkdir -p $DIR_OBJ
-
-source "$DIR_HERE/conf.sh"
-
-OPENSSL_ARC_NAME=$(basename $OPENSSL_URL)
-
-THIS_MACHINE_BUILD=$($DIR_HERE/config.guess)
-
-if [ ! -f "$DIR_OBJ/${THIS_MACHINE_BUILD}.stamp" ]; then
-    echo "THIS_MACHINE_BUILD=$THIS_MACHINE_BUILD"
-    touch "$DIR_OBJ/${THIS_MACHINE_BUILD}.stamp"
-fi
-
-if [ ! -f "$DIR_OBJ/$OPENSSL_ARC_NAME" ]; then
-    curl -L -o "$DIR_OBJ/$OPENSSL_ARC_NAME" $OPENSSL_URL
-fi
 
 
-OPENSSL_SRCDIR="$DIR_OBJ/openssl-src-defgen"
-rm -rf $OPENSSL_SRCDIR
-
-if [ ! -f "$DIR_OBJ/$OPENSSL_ARC_NAME" ]; then
-    echo "ERROR: file not found: '$DIR_OBJ/$OPENSSL_ARC_NAME'"
-    exit 1
-fi
-
-mkdir -p $OPENSSL_SRCDIR
-tar xf "$DIR_OBJ/$OPENSSL_ARC_NAME" --strip-components=1 -C $OPENSSL_SRCDIR
-echo "tarball '$DIR_OBJ/$OPENSSL_ARC_NAME' extracted in '$OPENSSL_SRCDIR'"
-
-OPENSSL_GEN_EXPORT_OPTIONS="enable-static-engine"
+OPENSSL_SRCDIR="$DIR_OBJ/openssl-src-mingw64"
 
 CRYPTO_DEF="$DIR_HERE/tweaks/libcrypto.orig.def"
 CRYPTO_DEF_OUTPUT="$DIR_HERE/tweaks/libcrypto.def"

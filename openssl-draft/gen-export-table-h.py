@@ -34,6 +34,10 @@ CRYPTO_DISABLED_API = [
 
 CRYPTO_WINONLY_API = EXPORTS_CRYPTO_WINAPI_ONLY.split(',')
 
+CRYPTO_DEPRECATED_API = []
+CRYPTO_DISABLED_API = []
+CRYPTO_WINONLY_API = []
+
 def load_export_list_from_def_file(lib_name, def_file):
     export_section_found = False
     export_list = []

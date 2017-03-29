@@ -48,6 +48,16 @@ build_target_openssl ()
     echo "tarball '$DIR_OBJ/$OPENSSL_ARC_NAME' extracted in '$OPENSSL_SRCDIR'"
 
     case $ABI in
+        mingw64)
+            XT_DIR="$HOME/x-tools/x86_64-w64-mingw32/bin"
+            XT_PREFIX='x86_64-w64-mingw32-'
+            OPENSSL_TARGET=mingw64
+            ;;
+        mingw)
+            XT_DIR="$HOME/x-tools/x86_64-w64-mingw32/bin"
+            XT_PREFIX='x86_64-w64-mingw32-'
+            OPENSSL_TARGET=mingw
+            ;;
         x86_64)
             XT_DIR="$HOME/x-tools/x86_64-unknown-linux-gnu/bin"
             XT_PREFIX='x86_64-unknown-linux-gnu-'
@@ -116,11 +126,9 @@ build_target_openssl ()
         echo '#!/bin/bash -e'
         echo "export PATH=\"$BIN_WRAP_DIR:\$PATH\""
         echo "cd $OPENSSL_SRCDIR"
-        echo "perl -p -i -e 's/^(install:.*)\\binstall_docs\\b(.*)$/\$1 \$2/g' Makefile.org"
         echo "perl ./Configure --cross-compile-prefix=$XT_PREFIX $OPENSSL_OPTIONS $OPENSSL_TARGET"
         echo "cp -t include $DIR_OBJ/zlib/zlib.h"
         echo "cp -t include $DIR_OBJ/zlib/zconf.h"
-        echo "perl -p -i -e 's/^(#\\s*define\\s+ENGINESDIR\\s+).*$/\$1NULL/g' crypto/opensslconf.h"
         echo "make"
     } >$BUILD_WRAPPER
 
@@ -129,30 +137,9 @@ build_target_openssl ()
     $BUILD_WRAPPER
 }
 
-# $1: ABI
-collect_openssl_headers ()
-{
-    local ABI=$1
-    local HEADERS_DIR="$DIR_OBJ/openssl-src-$ABI/include/openssl"
-    if [ ! -d "$HEADERS_DIR" ]; then
-        echo "ERROR: Directory not found '$HEADERS_DIR'"
-        exit 1
-    fi
-    local BIN_TRACE_DIR="$DIR_OBJ/bin-trace/$ABI"
-    local FILE_WITH_HEADERS_LIST="$BIN_TRACE_DIR/headers.list"
-    local TGT
-    rm -rf "$FILE_WITH_HEADERS_LIST"
-    (cd $HEADERS_DIR; find . -type l) | sed 's!^\./!!' | while read F; do
-        TGT=$(readlink $HEADERS_DIR/$F)
-        TGT=$(echo "$TGT" | sed 's!^\.\.\/\.\./!!')
-        echo "$F | $TGT" >> $FILE_WITH_HEADERS_LIST
-    done
-    echo "Headers info is written in '$FILE_WITH_HEADERS_LIST'"
-}
 
 for abi in $(echo $ABI_ALL | tr ',' ' '); do
     build_target_openssl $abi
-    collect_openssl_headers $abi
 done
 
 echo "Done!"

@@ -22,6 +22,9 @@ extern "C" {
  * OpenSSL was configured with the following options:
  */
 
+#ifndef OPENSSL_SYS_MINGW32
+# define OPENSSL_SYS_MINGW32 1
+#endif
 #ifndef OPENSSL_NO_MD2
 # define OPENSSL_NO_MD2
 #endif
@@ -152,17 +155,17 @@ extern "C" {
 #undef OPENSSL_UNISTD
 #define OPENSSL_UNISTD <unistd.h>
 
-#undef OPENSSL_EXPORT_VAR_AS_FUNCTION
+#define OPENSSL_EXPORT_VAR_AS_FUNCTION
 
 /*
  * The following are cipher-specific, but are part of the public API.
  */
 #if !defined(OPENSSL_SYS_UEFI)
-# undef BN_LLONG
+# define BN_LLONG
 /* Only one for the following should be defined */
-# define SIXTY_FOUR_BIT_LONG
+# undef SIXTY_FOUR_BIT_LONG
 # undef SIXTY_FOUR_BIT
-# undef THIRTY_TWO_BIT
+# define THIRTY_TWO_BIT
 #endif
 
 #define RC4_INT unsigned int

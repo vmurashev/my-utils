@@ -8,9 +8,8 @@ with open(os.path.join(DIR_HERE, 'conf.sh'), mode='rt') as conf_sh:
     exec(compile(conf_sh.read(), os.path.join(DIR_HERE, 'conf.sh'), 'exec'))
 
 
-KNOWN_TOOLS = ['gcc', 'ar', 'ranlib']
+KNOWN_TOOLS = ['gcc', 'ar', 'ranlib', 'windres']
 
-HEADERS_TO_SKIP = ['opensslconf.h']
 
 def norm_build_dir(arg):
     bits = []
@@ -23,26 +22,36 @@ def norm_build_dir(arg):
     return '/'.join(bits)
 
 
-def parse_build_log(input_log, input_headers, output_ini):
+def parse_build_log(input_log, output_ini):
     SRC_MAP = {}
     SRC_DEF_MAP = {}
     LIBS_MAP = {}
     LIBS_DEF = {}
-    HEADERS = []
+
+    crypto_linked = False
+    ssl_linked = False
 
     lines = [line.rstrip('\r\n') for line in open(input_log)]
+    line_number = 0
     for line in lines:
+        if crypto_linked and ssl_linked:
+            break
+        line_number += 1
         bits = line.split('|')
         if len(bits) != 3:
-            print("BAD LINE: ---{}---".format(line))
+            print("BAD LINE@{}: ---{}---".format(line_number, line))
             raise Exception("BAD LINE")
 
-        cmdline = bits[0].strip().split()
+        cmdline = bits[0].strip().rstrip('\\').split()
+        if len(cmdline) == 1 and cmdline[0] == '--version':
+            continue
+        if len(cmdline) == 3 and cmdline[0] == '-E' and cmdline[1] == '-P' and cmdline[2] == '-':
+            continue
         tool = bits[1].rsplit('-',1)[1].strip()
         exec_dir = norm_build_dir(bits[2])
 
         if tool not in KNOWN_TOOLS:
-            print("UNKNOWN TOOL '{}' AT LINE: ---{}---".format(tool, line))
+            print("UNKNOWN TOOL '{}' AT LINE@{}: ---{}---".format(tool, line_number, line))
             raise Exception("BAD LINE")
 
         if tool == 'gcc':
@@ -62,16 +71,16 @@ def parse_build_log(input_log, input_headers, output_ini):
                         elif v == '-o':
                             next_is_exe_fname = True
                 if so_name is None and exe_name is None:
-                    print("BAD LINE (cannot eval soname): ---{}---".format(line))
+                    if '-E' in cmdline:
+                        continue
+                    print("BAD LINE@{} (cannot eval soname): ---{}---".format(line_number, line))
                     raise Exception("BAD LINE")
                 if so_name is not None:
                     print("Linking DSO: '{}' in '{}'".format(so_name, exec_dir))
-                    pass
                 if exe_name is not None:
                     print("Linking EXE: '{}' in '{}'".format(exe_name, exec_dir))
-                    pass
             else:
-                src_line = cmdline[-1].rstrip('\\')
+                src_line = cmdline[-1]
                 if src_line not in ['/dev/null']:
                     src_defs = []
                     for d in cmdline:
@@ -88,13 +97,13 @@ def parse_build_log(input_log, input_headers, output_ini):
                     src = os.path.splitext(src)[0]
                     print(src_path)
                     if src in SRC_MAP:
-                        print("BAD LINE (src '{}' already in map): ---{}---".format(src, line))
+                        print("BAD LINE@{} (src '{}' already in map): ---{}---".format(line_number, src, line))
                         raise Exception("BAD LINE")
                     SRC_MAP[src] = src_path
                     SRC_DEF_MAP[src] = ' '.join(src_defs)
         elif tool == 'ar':
             if cmdline[0] != 'r':
-                print("BAD LINE: ---{}---".format(line))
+                print("BAD LINE@{}: ---{}---".format(line_number, line))
                 raise Exception("BAD LINE")
             lib_name = os.path.basename(cmdline[1].rstrip('\\').strip())
             if lib_name.startswith('lib') and lib_name.endswith('.a'):
@@ -103,15 +112,19 @@ def parse_build_log(input_log, input_headers, output_ini):
                 LIBS_MAP[lib_name] = []
 
             for v in cmdline[2:]:
-                item = os.path.splitext(v)[0]
+                item = os.path.splitext(os.path.basename(v))[0]
                 if item in LIBS_MAP[lib_name]:
-                    print("BAD LINE (src '{}' already in lib '{}'): ---{}---".format(item, lib_name, line))
+                    print("BAD LINE@{} (src '{}' already in lib '{}'): ---{}---".format(line_number, item, lib_name, line))
                     raise Exception("BAD LINE")
                 if item not in SRC_MAP:
-                    print("BAD LINE(unkown item '{}'): ---{}---".format(item, line))
+                    print("BAD LINE@{} (unkown item '{}'): ---{}---".format(line_number, item, line))
                     raise Exception("BAD LINE")
                 LIBS_MAP[lib_name].append(item)
                 print('{} <- {}'.format(lib_name, item))
+            if lib_name == 'crypto':
+                crypto_linked = True
+            elif lib_name == 'ssl':
+                ssl_linked = True
 
     for lib_name in sorted(LIBS_MAP.keys()):
         lib_def = None
@@ -126,24 +139,10 @@ def parse_build_log(input_log, input_headers, output_ini):
                     raise Exception("BAD LINE")
         LIBS_DEF[lib_name] = lib_def
 
-    lines = [line.rstrip('\r\n') for line in open(input_headers)]
-    for line in lines:
-        bits = line.split('|')
-        if len(bits) != 2:
-            print("BAD LINE: ---{}---".format(line))
-            raise Exception("BAD LINE")
-        h_name = bits[0].strip()
-        h_tgt = bits[1].strip()
-        if h_name not in HEADERS_TO_SKIP:
-            HEADERS.append((h_name, h_tgt))
 
     with open(output_ini, mode='wt') as fh:
         print("[CONFIG]", file=fh)
         print("LIB_NANES = {}".format(' '.join(sorted(LIBS_MAP.keys()))), file=fh)
-        print('', file=fh)
-        print("[HEADERS]", file=fh)
-        for h_name, h_tgt in HEADERS:
-            print('{} = {}'.format(h_name, h_tgt), file=fh)
         print('', file=fh)
         for lib_name in sorted(LIBS_MAP.keys()):
             lib_def = LIBS_DEF[lib_name]
@@ -165,9 +164,8 @@ if __name__ == '__main__':
     arch_list = ABI_ALL.split(',')
     for arch in arch_list:
         playback_log = os.path.normpath(os.path.join(DIR_HERE, 'obj/bin-trace/{}/build.log'.format(arch)))
-        playback_headers = os.path.normpath(os.path.join(DIR_HERE, 'obj/bin-trace/{}/headers.list'.format(arch)))
         playback_ini = os.path.normpath(os.path.join(DIR_HERE, 'obj/bin-trace/{}/build.ini'.format(arch)))
 
-        parse_build_log(playback_log, playback_headers, playback_ini)
+        parse_build_log(playback_log, playback_ini)
 
     print('parsed!')
