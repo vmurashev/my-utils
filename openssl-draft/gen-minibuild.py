@@ -12,7 +12,7 @@ DIR_HERE = os.path.normpath(os.path.abspath(os.path.dirname(__file__)))
 with open(os.path.join(DIR_HERE, 'conf.sh'), mode='rt') as conf_sh:
     exec(compile(conf_sh.read(), os.path.join(DIR_HERE, 'conf.sh'), 'exec'))
 
-CRYPTO_WINONLY_API = EXPORTS_CRYPTO_WINAPI_ONLY.split(',')
+CRYPTO_WINONLY_API = [] # EXPORTS_CRYPTO_WINAPI_ONLY.split(',')
 
 DIR_PROJECT_ROOT = os.path.normpath(os.path.join(DIR_HERE, 'draft'))
 DIR_OPENSSL_SUBMODULE = os.path.join(DIR_PROJECT_ROOT, '0')
@@ -31,12 +31,28 @@ APPS_MAKE_DIR = os.path.join(DIR_OPENSSL_SUBMODULE, 'build/apps')
 if not os.path.isfile(os.path.join(DIR_PROJECT_ROOT, 'minibuild.ini')):
     if not os.path.isdir(DIR_OPENSSL_SUBMODULE_VENDOR):
         os.makedirs(DIR_OPENSSL_SUBMODULE_VENDOR)
+    if not os.path.isdir(OPENSSL_HEADERS_DIR):
+        os.makedirs(OPENSSL_HEADERS_DIR)
     subprocess.check_call(['tar', 'xf', os.path.join(DIR_HERE, 'obj', os.path.basename(OPENSSL_URL)), '--strip-components=1', '-C', DIR_OPENSSL_SUBMODULE_VENDOR])
     subprocess.check_call("find . -name '*.s' -exec rm -f {} \;", shell=True, cwd=DIR_OPENSSL_SUBMODULE_VENDOR)
     subprocess.check_call("find . -name '*.S' -exec rm -f {} \;", shell=True, cwd=DIR_OPENSSL_SUBMODULE_VENDOR)
+    subprocess.check_call("find . -name '*.h.in' -exec rm -f {} \;", shell=True, cwd=DIR_OPENSSL_SUBMODULE_VENDOR)
     subprocess.check_call("find . -type f -exec chmod ugo-x {} \;", shell=True, cwd=DIR_OPENSSL_SUBMODULE_VENDOR)
     subprocess.check_call(['git', 'clone', 'https://github.com/vmurashev/zlib.git'], cwd=DIR_PROJECT_ROOT)
     shutil.copyfile(os.path.join(DIR_HERE, 'shlib_verify_export', 'minibuild.ini'), os.path.join(DIR_PROJECT_ROOT, 'minibuild.ini'))
+
+    for twh in os.listdir(os.path.join(DIR_OPENSSL_SUBMODULE_VENDOR, 'include/openssl')):
+        if not twh.startswith('__') and twh.endswith('.h'):
+            shutil.copyfile(os.path.join(DIR_OPENSSL_SUBMODULE_VENDOR, 'include/openssl', twh), os.path.join(OPENSSL_HEADERS_DIR, twh))
+
+    shutil.rmtree(os.path.join(DIR_OPENSSL_SUBMODULE_VENDOR, 'include/openssl'))
+
+    for twh in os.listdir(os.path.join(DIR_HERE, 'tweaks')):
+        if twh.startswith('opensslconf') and twh.endswith('.h'):
+            shutil.copyfile(os.path.join(DIR_HERE, 'tweaks', twh), os.path.join(OPENSSL_HEADERS_DIR, twh))
+
+    shutil.copyfile(os.path.join(DIR_HERE, 'tweaks', 'bn_conf.h'), os.path.join(DIR_OPENSSL_SUBMODULE_VENDOR, 'crypto/include/internal', 'bn_conf.h'))
+    shutil.copyfile(os.path.join(DIR_HERE, 'tweaks', 'dso_conf.h'), os.path.join(DIR_OPENSSL_SUBMODULE_VENDOR, 'crypto/include/internal', 'dso_conf.h'))
 
 
 def load_ini_config(path):
@@ -100,6 +116,8 @@ def gen_makefile_for_lib(lib_ini_name, lib_make_name, vendor_prefix, incd, maked
             if f not in arch_files_map[arch]:
                 in_all = False
                 break
+        if not f.endswith('.c'):
+            in_all = False
         if not in_all:
             arch_specific_files.add(f)
 
@@ -211,9 +229,9 @@ def gen_makefile_for_lib(lib_ini_name, lib_make_name, vendor_prefix, incd, maked
         for f_name in sorted(common_files_names):
             print("  '{}',".format(f_name), file=fh)
 
-        if lib_make_name.startswith('crypto'):
-            for f_name in ['e_4758cca.c', 'e_aep.c', 'e_atalla.c', 'e_cswift.c', 'e_chil.c', 'e_nuron.c', 'e_sureware.c', 'e_ubsec.c', 'e_padlock.c' ]:
-                print("  '{}',".format(f_name), file=fh)
+#        if lib_make_name.startswith('crypto'):
+#            for f_name in ['e_4758cca.c', 'e_aep.c', 'e_atalla.c', 'e_cswift.c', 'e_chil.c', 'e_nuron.c', 'e_sureware.c', 'e_ubsec.c', 'e_padlock.c' ]:
+#                print("  '{}',".format(f_name), file=fh)
 
         print("]", file=fh)
         print("", file=fh)
@@ -223,7 +241,7 @@ def gen_makefile_for_lib(lib_ini_name, lib_make_name, vendor_prefix, incd, maked
             print("build_list_linux_{} = [".format(arch), file=fh)
             for f in sorted(arch_files_map[arch]):
                 f_name = os.path.basename(f)
-                if f_name in common_files_names:
+                if f_name.endswith('.c') and f_name in common_files_names:
                     continue
                 print("  '{}',".format(f_name), file=fh)
                 if not f_name.endswith(".c"):
@@ -259,23 +277,6 @@ def cleanup_dir(dir_name):
     else:
         os.makedirs(dir_name)
 
-def gen_headers(h_dir, inc_prefix, arch_map):
-    cleanup_dir(h_dir)
-    all_headers = {}
-    arch_list = sorted(arch_map.keys())
-    for arch in arch_list:
-        options = arch_map[arch].options('HEADERS')
-        for h_name in options:
-            h_ref = get_ini_conf_string1(arch_map[arch], 'HEADERS', h_name)
-            all_headers[h_name] = h_ref
-
-    for h_name, h_ref in all_headers.items():
-        h_path = os.path.join(h_dir, h_name)
-        with open(h_path, mode='wt') as fh:
-            print('#include "{}/{}"'.format(inc_prefix, h_ref), file=fh, end='')
-
-    shutil.copyfile(os.path.join(DIR_HERE, 'tweaks', 'opensslconf.h'), os.path.join(h_dir, 'opensslconf.h'))
-
 
 def main():
     arch_map = {}
@@ -284,33 +285,29 @@ def main():
         playback_ini_config = os.path.normpath(os.path.join(DIR_HERE, 'obj/bin-trace/{}/build.ini'.format(arch)))
         arch_map[arch] = load_ini_config(playback_ini_config)
 
-    gen_headers(OPENSSL_HEADERS_DIR, '../../vendor', arch_map)
-
     crypto_incd = [
         '../../include',
-        '../../../zlib/include',
+        '../../vendor/include',
+        '../../vendor/crypto/include',
         '../../vendor',
-        '../../vendor/crypto',
-        '../../vendor/crypto/aes',
-        '../../vendor/crypto/asn1',
-        '../../vendor/crypto/evp',
         '../../vendor/crypto/modes',
+        '../../../zlib/include',
     ]
 
     ssl_incd = [
         '../../include',
+        '../../vendor/include',
         '../../vendor',
-        '../../vendor/crypto',
     ]
 
-    crypto_def_file = os.path.join(DIR_HERE, 'tweaks', 'libcrypto.def')
-    ssl_def_file = os.path.join(DIR_HERE, 'tweaks', 'libssl.def')
+#    crypto_def_file = os.path.join(DIR_HERE, 'tweaks', 'libcrypto.def')
+#    ssl_def_file = os.path.join(DIR_HERE, 'tweaks', 'libssl.def')
 
     gen_makefile_for_lib('crypto', 'crypto_static', '../../vendor', crypto_incd, CRYPTO_STATIC_MAKE_DIR, arch_map)
-    gen_makefile_for_lib('crypto', 'crypto', '../../vendor', crypto_incd, CRYPTO_SHARED_MAKE_DIR, arch_map, crypto_def_file)
+#    gen_makefile_for_lib('crypto', 'crypto', '../../vendor', crypto_incd, CRYPTO_SHARED_MAKE_DIR, arch_map, crypto_def_file)
 
     gen_makefile_for_lib('ssl', 'ssl_static', '../../vendor', ssl_incd, SSL_STATIC_MAKE_DIR, arch_map)
-    gen_makefile_for_lib('ssl', 'ssl', '../../vendor', ssl_incd, SSL_SHARED_MAKE_DIR, arch_map, ssl_def_file)
+#    gen_makefile_for_lib('ssl', 'ssl', '../../vendor', ssl_incd, SSL_SHARED_MAKE_DIR, arch_map, ssl_def_file)
 
     if not os.path.isdir(APPS_MAKE_DIR):
         os.makedirs(APPS_MAKE_DIR)
