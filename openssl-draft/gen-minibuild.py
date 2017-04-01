@@ -197,7 +197,14 @@ def gen_makefile_for_lib(lib_ini_name, lib_make_name, vendor_prefix, incd, maked
 
         if lib_make_name.startswith('crypto'):
             for arch in arch_list:
-                print("src_search_dir_list_linux_{} = [ '{}/crypto/arch/linux-{}' ]".format(arch, vendor_prefix, arch), file=fh)
+                if arch == 'mingw':
+                    print("if BUILDSYS_TOOLSET_NAME == 'gcc':", file=fh)
+                    print("    src_search_dir_list_windows_x86 = [ '{}/crypto/arch/mingw-win32' ]".format(vendor_prefix), file=fh)
+                elif arch == 'mingw64':
+                    print("if BUILDSYS_TOOLSET_NAME == 'gcc':", file=fh)
+                    print("    src_search_dir_list_windows_x86_64 = [ '{}/crypto/arch/mingw-win64' ]".format(vendor_prefix), file=fh)
+                else:
+                    print("src_search_dir_list_linux_{} = [ '{}/crypto/arch/linux-{}' ]".format(arch, vendor_prefix, arch), file=fh)
 
         print("", file=fh)
         print("definitions = [", file=fh)
@@ -216,7 +223,12 @@ def gen_makefile_for_lib(lib_ini_name, lib_make_name, vendor_prefix, incd, maked
         print("", file=fh)
 
         for arch in arch_list:
-            print("definitions_linux_{} = [".format(arch), file=fh)
+            if arch == 'mingw':
+                print("definitions_spec_mingw_win32 = [", file=fh)
+            elif arch == 'mingw64':
+                print("definitions_spec_mingw_win64 = [", file=fh)
+            else:
+                print("definitions_linux_{} = [".format(arch), file=fh)
             for d in sorted(arch_def_map[arch]):
                 if d in common_defs:
                     continue
@@ -238,7 +250,12 @@ def gen_makefile_for_lib(lib_ini_name, lib_make_name, vendor_prefix, incd, maked
 
         for arch in arch_list:
             arch_asm_files[arch] = []
-            print("build_list_linux_{} = [".format(arch), file=fh)
+            if arch == 'mingw':
+                print("build_spec_mingw_win32 = [", file=fh)
+            elif arch == 'mingw64':
+                print("build_spec_mingw_win64 = [", file=fh)
+            else:
+                print("build_list_linux_{} = [".format(arch), file=fh)
             for f in sorted(arch_files_map[arch]):
                 f_name = os.path.basename(f)
                 if f_name.endswith('.c') and f_name in common_files_names:
@@ -250,12 +267,27 @@ def gen_makefile_for_lib(lib_ini_name, lib_make_name, vendor_prefix, incd, maked
             print("]", file=fh)
             print("", file=fh)
 
+        if 'mingw' in arch_list:
+            print("if BUILDSYS_TOOLSET_NAME == 'gcc':", file=fh)
+            print("    definitions_windows_x86 = definitions_spec_mingw_win32", file=fh)
+            print("    build_list_windows_x86 = build_spec_mingw_win32", file=fh)
+        print("", file=fh)
+        if 'mingw64' in arch_list:
+            print("if BUILDSYS_TOOLSET_NAME == 'gcc':", file=fh)
+            print("    definitions_windows_x86_64 = definitions_spec_mingw_win64", file=fh)
+            print("    build_list_windows_x86_64 = build_spec_mingw_win64", file=fh)
+
 
     if def_file is not None:
         shutil.copyfile(def_file, os.path.join(makedir, os.path.basename(def_file)))
 
     for arch in arch_list:
-        af_dst_dir = os.path.join(DIR_OPENSSL_SUBMODULE_VENDOR, 'crypto/arch/linux-{}'.format(arch))
+        if arch == 'mingw':
+            af_dst_dir = os.path.join(DIR_OPENSSL_SUBMODULE_VENDOR, 'crypto/arch/mingw-win32')
+        elif arch == 'mingw64':
+            af_dst_dir = os.path.join(DIR_OPENSSL_SUBMODULE_VENDOR, 'crypto/arch/mingw-win64')
+        else:
+            af_dst_dir = os.path.join(DIR_OPENSSL_SUBMODULE_VENDOR, 'crypto/arch/linux-{}'.format(arch))
         if not os.path.isdir(af_dst_dir):
             os.makedirs(af_dst_dir)
             for af in arch_asm_files[arch]:
@@ -288,8 +320,9 @@ def main():
     crypto_incd = [
         '../../include',
         '../../vendor/include',
-        '../../vendor/crypto/include',
         '../../vendor',
+        '../../vendor/crypto/include',
+        '../../vendor/crypto',
         '../../vendor/crypto/modes',
         '../../../zlib/include',
     ]

@@ -71,5 +71,12 @@ build_list = [
     'x509.c',
 ]
 
+build_list_windows = [
+     'win32_init.c'
+]
+
 definitions = ['MONOLITH']
+definitions_windows = ['WIN32_LEAN_AND_MEAN']
+
 prebuilt_lib_list_linux = ['dl','pthread']
+prebuilt_lib_list_windows = ['ws2_32']
