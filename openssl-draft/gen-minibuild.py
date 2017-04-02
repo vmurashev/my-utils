@@ -145,8 +145,9 @@ def gen_makefile_for_lib(lib_ini_name, lib_make_name, vendor_prefix, incd, maked
     dir_names = set()
     for f in all_files:
         if '/' in f:
-            dir_name = os.path.dirname(f)
-            dir_names.add(dir_name)
+            if f.endswith('.c'):
+                dir_name = os.path.dirname(f)
+                dir_names.add(dir_name)
 
     if not os.path.isdir(makedir):
         os.makedirs(makedir)
@@ -190,9 +191,9 @@ def gen_makefile_for_lib(lib_ini_name, lib_make_name, vendor_prefix, incd, maked
         for dir_name in sorted(dir_names):
             dir_name_norm = '/'.join([vendor_prefix, dir_name])
             print("  '{}',".format(dir_name_norm), file=fh)
-        if lib_make_name.startswith('crypto'):
-            for dir_name in ['../../vendor/engines']:
-                print("  '{}',".format(dir_name), file=fh)
+#        if lib_make_name.startswith('crypto'):
+#            for dir_name in ['../../vendor/engines']:
+#                print("  '{}',".format(dir_name), file=fh)
         print("]", file=fh)
         print("", file=fh)
 

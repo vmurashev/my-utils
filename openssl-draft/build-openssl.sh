@@ -146,9 +146,66 @@ copy_config_headers ()
     cp -T "$OPENSSL_SRCDIR/include/openssl/opensslconf.h" "$DIR_HERE/tweaks/opensslconf_${DST_SUFIX}.h"
 }
 
+gen_def_files ()
+{
+    local OPENSSL_SRCDIR="$DIR_OBJ/openssl-src-mingw64"
+
+    local CRYPTO_DEF="$DIR_HERE/tweaks/libcrypto.orig.def"
+    local CRYPTO_DEF_OUTPUT="$DIR_HERE/tweaks/libcrypto.def"
+    local CRYPTO_TEST_EXPORT_H="$DIR_HERE/shlib_verify_export/crypto_export_table.h"
+
+    SSL_DEF="$DIR_HERE/tweaks/libssl.orig.def"
+    SSL_DEF_OUTPUT="$DIR_HERE/tweaks/libssl.def"
+    SSL_TEST_EXPORT_H="$DIR_HERE/shlib_verify_export/ssl_export_table.h"
+
+    rm -rf "$CRYPTO_DEF" "$CRYPTO_DEF_OUTPUT" "$CRYPTO_TEST_EXPORT_H"
+    rm -rf "$SSL_DEF" "$SSL_DEF_OUTPUT" "$SSL_TEST_EXPORT_H"
+
+    (
+        cd $OPENSSL_SRCDIR
+        perl util/mkdef.pl crypto $OPENSSL_GEN_EXPORT_OPTIONS > $CRYPTO_DEF
+        perl util/mkdef.pl ssl $OPENSSL_GEN_EXPORT_OPTIONS > $SSL_DEF
+    )
+
+    $DIR_HERE/gen-export-table-h.py --lib-name crypto --def-file "$CRYPTO_DEF" --def-output "$CRYPTO_DEF_OUTPUT" --h-output "$CRYPTO_TEST_EXPORT_H"
+    $DIR_HERE/gen-export-table-h.py --lib-name ssl    --def-file "$SSL_DEF"    --def-output "$SSL_DEF_OUTPUT"    --h-output "$SSL_TEST_EXPORT_H"
+
+    if [ -f "$CRYPTO_DEF" ]; then
+        echo "Genarated: $CRYPTO_DEF"
+    fi
+
+    if [ -f "$CRYPTO_DEF_OUTPUT" ]; then
+        echo "Genarated: $CRYPTO_DEF_OUTPUT"
+    fi
+
+    if [ -f "$CRYPTO_TEST_EXPORT_H" ]; then
+        echo "Genarated: $CRYPTO_TEST_EXPORT_H"
+    fi
+
+    if [ -f "$SSL_DEF" ]; then
+        echo "Genarated: $SSL_DEF"
+    fi
+
+    if [ -f "$SSL_DEF_OUTPUT" ]; then
+        echo "Genarated: $SSL_DEF_OUTPUT"
+    fi
+
+    if [ -f "$SSL_TEST_EXPORT_H" ]; then
+        echo "Genarated: $SSL_TEST_EXPORT_H"
+    fi
+}
+
+GEN_DEF_FILES='no'
 for abi in $(echo $ABI_ALL | tr ',' ' '); do
     build_target_openssl $abi
     copy_config_headers $abi
+    if [ "$abi" = "mingw64" ]; then
+        GEN_DEF_FILES='yes'
+    fi
 done
+
+if [ "$GEN_DEF_FILES" = "yes" ]; then
+    gen_def_files
+fi
 
 echo "Done!"
