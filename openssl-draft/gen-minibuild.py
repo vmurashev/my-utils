@@ -12,7 +12,7 @@ DIR_HERE = os.path.normpath(os.path.abspath(os.path.dirname(__file__)))
 with open(os.path.join(DIR_HERE, 'conf.sh'), mode='rt') as conf_sh:
     exec(compile(conf_sh.read(), os.path.join(DIR_HERE, 'conf.sh'), 'exec'))
 
-CRYPTO_WINONLY_API = [] # EXPORTS_CRYPTO_WINAPI_ONLY.split(',')
+CRYPTO_WINONLY_API = EXPORTS_CRYPTO_WINAPI_ONLY.split(',')
 
 DIR_PROJECT_ROOT = os.path.normpath(os.path.join(DIR_HERE, 'draft'))
 DIR_OPENSSL_SUBMODULE = os.path.join(DIR_PROJECT_ROOT, '0')
@@ -172,7 +172,8 @@ def gen_makefile_for_lib(lib_ini_name, lib_make_name, vendor_prefix, incd, maked
             print("", file=fh)
             print("symbol_visibility_default = 1", file=fh)
             print("", file=fh)
-            print("prebuilt_lib_list_linux = ['dl']", file=fh)
+            print("prebuilt_lib_list_linux = ['dl','pthread']", file=fh)
+            print("prebuilt_lib_list_windows = ['ws2_32']", file=fh)
             print("", file=fh)
             print("lib_list = ['../../../zlib']", file=fh)
             print("", file=fh)
@@ -333,14 +334,14 @@ def main():
         '../../vendor',
     ]
 
-#    crypto_def_file = os.path.join(DIR_HERE, 'tweaks', 'libcrypto.def')
-#    ssl_def_file = os.path.join(DIR_HERE, 'tweaks', 'libssl.def')
+    crypto_def_file = os.path.join(DIR_HERE, 'tweaks', 'libcrypto.def')
+    ssl_def_file = os.path.join(DIR_HERE, 'tweaks', 'libssl.def')
 
     gen_makefile_for_lib('crypto', 'crypto_static', '../../vendor', crypto_incd, CRYPTO_STATIC_MAKE_DIR, arch_map)
-#    gen_makefile_for_lib('crypto', 'crypto', '../../vendor', crypto_incd, CRYPTO_SHARED_MAKE_DIR, arch_map, crypto_def_file)
+    gen_makefile_for_lib('crypto', 'crypto', '../../vendor', crypto_incd, CRYPTO_SHARED_MAKE_DIR, arch_map, crypto_def_file)
 
     gen_makefile_for_lib('ssl', 'ssl_static', '../../vendor', ssl_incd, SSL_STATIC_MAKE_DIR, arch_map)
-#    gen_makefile_for_lib('ssl', 'ssl', '../../vendor', ssl_incd, SSL_SHARED_MAKE_DIR, arch_map, ssl_def_file)
+    gen_makefile_for_lib('ssl', 'ssl', '../../vendor', ssl_incd, SSL_SHARED_MAKE_DIR, arch_map, ssl_def_file)
 
     if not os.path.isdir(APPS_MAKE_DIR):
         os.makedirs(APPS_MAKE_DIR)

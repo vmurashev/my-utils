@@ -8,35 +8,9 @@ DIR_HERE = os.path.normpath(os.path.abspath(os.path.dirname(__file__)))
 with open(os.path.join(DIR_HERE, 'conf.sh'), mode='rt') as conf_sh:
     exec(compile(conf_sh.read(), os.path.join(DIR_HERE, 'conf.sh'), 'exec'))
 
-CRYPTO_DEPRECATED_API = [
-    'BN_generate_prime',
-    'BN_is_prime',
-    'CRYPTO_get_id_callback',
-    'CRYPTO_set_id_callback',
-    'CRYPTO_thread_id',
-    'DH_generate_parameters',
-    'DSA_generate_parameters',
-    'ERR_remove_state',
-    'RSA_generate_key',
-    'BN_CTX_init',
-    'BN_set_params',
-    'BN_get_params',
-    'BN_is_prime_fasttest',
-    'bn_dup_expand',
-    'BN_BLINDING_get_thread_id',
-    'BN_BLINDING_set_thread_id',
-]
-
-CRYPTO_DISABLED_API = [
-    'ENGINE_load_gost',
-    'OPENSSL_cpuid_setup',
-]
 
 CRYPTO_WINONLY_API = EXPORTS_CRYPTO_WINAPI_ONLY.split(',')
 
-CRYPTO_DEPRECATED_API = []
-CRYPTO_DISABLED_API = []
-CRYPTO_WINONLY_API = []
 
 def load_export_list_from_def_file(lib_name, def_file):
     export_section_found = False
@@ -67,9 +41,6 @@ def load_export_list_from_def_file(lib_name, def_file):
             if tokens and not tokens[0].startswith('@'):
                 symbol = tokens[0]
                 symbol_enabled = True
-                if lib_name == 'crypto':
-                    if symbol in CRYPTO_DEPRECATED_API or symbol in CRYPTO_DISABLED_API:
-                        symbol_enabled = False
                 if symbol_enabled:
                     if symbol not in CRYPTO_WINONLY_API:
                         export_list.append(symbol)
