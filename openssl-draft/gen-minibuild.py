@@ -166,15 +166,10 @@ def gen_makefile_for_lib(lib_ini_name, lib_make_name, vendor_prefix, incd, maked
 
         if lib_make_name == 'crypto':
             print("", file=fh)
-            print("export_winapi_only = [", file=fh)
-            for symbol in CRYPTO_WINONLY_API:
-                print("  '{}',".format(symbol), file=fh)
-            print("]", file=fh)
-            print("", file=fh)
             print("symbol_visibility_default = 1", file=fh)
             print("", file=fh)
             print("prebuilt_lib_list_linux = ['dl','pthread']", file=fh)
-            print("prebuilt_lib_list_windows = ['ws2_32']", file=fh)
+            print("prebuilt_lib_list_windows = ['crypt32', 'ws2_32']", file=fh)
             print("", file=fh)
             print("lib_list = ['../../../zlib']", file=fh)
             print("", file=fh)
@@ -191,9 +186,6 @@ def gen_makefile_for_lib(lib_ini_name, lib_make_name, vendor_prefix, incd, maked
         for dir_name in sorted(dir_names):
             dir_name_norm = '/'.join([vendor_prefix, dir_name])
             print("  '{}',".format(dir_name_norm), file=fh)
-#        if lib_make_name.startswith('crypto'):
-#            for dir_name in ['../../vendor/engines']:
-#                print("  '{}',".format(dir_name), file=fh)
         print("]", file=fh)
         print("", file=fh)
 
@@ -242,11 +234,6 @@ def gen_makefile_for_lib(lib_ini_name, lib_make_name, vendor_prefix, incd, maked
         print("build_list = [", file=fh)
         for f_name in sorted(common_files_names):
             print("  '{}',".format(f_name), file=fh)
-
-#        if lib_make_name.startswith('crypto'):
-#            for f_name in ['e_4758cca.c', 'e_aep.c', 'e_atalla.c', 'e_cswift.c', 'e_chil.c', 'e_nuron.c', 'e_sureware.c', 'e_ubsec.c', 'e_padlock.c' ]:
-#                print("  '{}',".format(f_name), file=fh)
-
         print("]", file=fh)
         print("", file=fh)
 

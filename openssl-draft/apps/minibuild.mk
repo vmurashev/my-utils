@@ -80,4 +80,4 @@ definitions_windows = ['WIN32_LEAN_AND_MEAN']
 win_console = 1
 
 prebuilt_lib_list_linux = ['dl','pthread']
-prebuilt_lib_list_windows = ['ws2_32']
+prebuilt_lib_list_windows = ['crypt32','ws2_32']
