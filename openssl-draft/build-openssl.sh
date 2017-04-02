@@ -9,13 +9,6 @@ source "$DIR_HERE/conf.sh"
 ZLIB_ARC_NAME=$(basename $ZLIB_URL)
 OPENSSL_ARC_NAME=$(basename $OPENSSL_URL)
 
-THIS_MACHINE_BUILD=$($DIR_HERE/config.guess)
-
-if [ ! -f "$DIR_OBJ/${THIS_MACHINE_BUILD}.stamp" ]; then
-    echo "THIS_MACHINE_BUILD=$THIS_MACHINE_BUILD"
-    touch "$DIR_OBJ/${THIS_MACHINE_BUILD}.stamp"
-fi
-
 if [ ! -f "$DIR_OBJ/$OPENSSL_ARC_NAME" ]; then
     curl -L -o "$DIR_OBJ/$OPENSSL_ARC_NAME" $OPENSSL_URL
 fi
@@ -119,7 +112,7 @@ build_target_openssl ()
         chmod +x $XT_EXE_WRAPPER
     done
 
-    local OPENSSL_OPTIONS='shared zlib-dynamic -DOPENSSL_NO_DEPRECATED'
+    local OPENSSL_OPTIONS='shared zlib-dynamic no-deprecated'
 
     local BUILD_WRAPPER=$BUILDDIR/build.sh
     {
@@ -137,9 +130,25 @@ build_target_openssl ()
     $BUILD_WRAPPER
 }
 
+# $1: ABI
+copy_config_headers ()
+{
+    local ABI=$1
+    local DST_SUFIX=$ABI
+    local OPENSSL_SRCDIR="$DIR_OBJ/openssl-src-$abi"
+
+    case $ABI in
+        mingw)
+            DST_SUFIX=mingw32
+            ;;
+    esac
+
+    cp -T "$OPENSSL_SRCDIR/include/openssl/opensslconf.h" "$DIR_HERE/tweaks/opensslconf_${DST_SUFIX}.h"
+}
 
 for abi in $(echo $ABI_ALL | tr ',' ' '); do
     build_target_openssl $abi
+    copy_config_headers $abi
 done
 
 echo "Done!"

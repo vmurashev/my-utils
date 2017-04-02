@@ -10,13 +10,7 @@ EXPORTS
     DTLS_client_method
     DTLS_method
     DTLS_server_method
-    DTLSv1_2_client_method
-    DTLSv1_2_method
-    DTLSv1_2_server_method
-    DTLSv1_client_method
     DTLSv1_listen
-    DTLSv1_method
-    DTLSv1_server_method
     ERR_load_SSL_strings
     OPENSSL_init_ssl
     PEM_read_SSL_SESSION
@@ -330,7 +324,6 @@ EXPORTS
     SSL_set_client_CA_list
     SSL_set_connect_state
     SSL_set_ct_validation_callback
-    SSL_set_debug
     SSL_set_default_passwd_cb
     SSL_set_default_passwd_cb_userdata
     SSL_set_default_read_buffer_len
@@ -389,15 +382,6 @@ EXPORTS
     TLS_client_method
     TLS_method
     TLS_server_method
-    TLSv1_1_client_method
-    TLSv1_1_method
-    TLSv1_1_server_method
-    TLSv1_2_client_method
-    TLSv1_2_method
-    TLSv1_2_server_method
-    TLSv1_client_method
-    TLSv1_method
-    TLSv1_server_method
     d2i_SSL_SESSION
     i2d_SSL_SESSION
     SSL_COMP_get0_name
