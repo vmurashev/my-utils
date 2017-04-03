@@ -85,7 +85,7 @@ def parse_build_log(input_log, output_ini):
                     src_defs = []
                     for d in cmdline:
                         if d.startswith('-D'):
-                            if d != '-DZLIB_SHARED':
+                            if d != '-DZLIB_SHARED' and not d.startswith('-DENGINESDIR'):
                                 src_defs.append(d[2:])
                     src = src_line
                     if '/' in src:
