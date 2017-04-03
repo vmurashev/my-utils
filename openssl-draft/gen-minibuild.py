@@ -36,6 +36,7 @@ if not os.path.isfile(os.path.join(DIR_PROJECT_ROOT, 'minibuild.ini')):
     subprocess.check_call("find . -name '*.S' -exec rm -f {} \;", shell=True, cwd=DIR_OPENSSL_SUBMODULE_VENDOR)
     subprocess.check_call("find . -name '*.h.in' -exec rm -f {} \;", shell=True, cwd=DIR_OPENSSL_SUBMODULE_VENDOR)
     subprocess.check_call("find . -type f -exec chmod ugo-x {} \;", shell=True, cwd=DIR_OPENSSL_SUBMODULE_VENDOR)
+    subprocess.check_call("patch -p0 -i {}".format(os.path.join(DIR_HERE, 'tweaks', 'eng_list.c.patch')), shell=True, cwd=DIR_OPENSSL_SUBMODULE_VENDOR)
     subprocess.check_call(['git', 'clone', 'https://github.com/vmurashev/zlib.git'], cwd=DIR_PROJECT_ROOT)
     shutil.copyfile(os.path.join(DIR_HERE, 'shlib_verify_export', 'minibuild.ini'), os.path.join(DIR_PROJECT_ROOT, 'minibuild.ini'))
 
