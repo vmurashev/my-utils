@@ -161,8 +161,8 @@ gen_def_files ()
 
     (
         cd $OPENSSL_SRCDIR
-        perl util/mkdef.pl crypto $OPENSSL_GEN_EXPORT_OPTIONS > $CRYPTO_DEF
-        perl util/mkdef.pl ssl $OPENSSL_GEN_EXPORT_OPTIONS > $SSL_DEF
+        perl util/mkdef.pl crypto > $CRYPTO_DEF
+        perl util/mkdef.pl ssl > $SSL_DEF
     )
 
     $DIR_HERE/gen-export-table-h.py --lib-name crypto --def-file "$CRYPTO_DEF" --def-output "$CRYPTO_DEF_OUTPUT" --h-output "$CRYPTO_TEST_EXPORT_H"
