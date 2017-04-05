@@ -112,8 +112,6 @@ build_target_openssl ()
         chmod +x $XT_EXE_WRAPPER
     done
 
-    local OPENSSL_OPTIONS='shared zlib-dynamic no-deprecated disable-dynamic-engine'
-
     local BUILD_WRAPPER=$BUILDDIR/build.sh
     {
         echo '#!/bin/bash -e'

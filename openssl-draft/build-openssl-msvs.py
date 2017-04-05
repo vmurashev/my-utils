@@ -6,6 +6,7 @@ import struct
 import ctypes
 import sys
 import time
+import shutil
 
 
 DIR_HERE = os.path.normpath(os.path.abspath(os.path.dirname(__file__)))
@@ -19,19 +20,6 @@ with open(os.path.join(DIR_HERE, 'conf.sh'), mode='rt') as conf_sh:
 
 ZLIB_ARC_NAME = os.path.basename(ZLIB_URL)
 OPENSSL_ARC_NAME = os.path.basename(OPENSSL_URL)
-
-if not os.path.isfile(os.path.join(DIR_OBJ, OPENSSL_ARC_NAME)):
-    subprocess.check_call([CURL_FOR_WINDOWS, '-L', '-o', os.path.join(DIR_OBJ, OPENSSL_ARC_NAME), OPENSSL_URL])
-
-if not os.path.isfile(os.path.join(DIR_OBJ, ZLIB_ARC_NAME)):
-    subprocess.check_call([CURL_FOR_WINDOWS, '-L', '-o', os.path.join(DIR_OBJ, ZLIB_ARC_NAME), OPENSSL_URL])
-
-if not os.path.isdir(os.path.join(DIR_OBJ, 'zlib')):
-    os.makedirs(os.path.join(DIR_OBJ, 'zlib'))
-if not os.listdir(os.path.join(DIR_OBJ, 'zlib')):
-    x = [TAR_FOR_WINDOWS, 'xf', os.path.join(DIR_OBJ, ZLIB_ARC_NAME), '--strip-components=1', '--force-local', '-C', os.path.join(DIR_OBJ, 'zlib')]
-    print("DEBUG:> {}".format(' '.join(x)))
-    subprocess.check_call(x)
 
 MSVS_VARS_WRAPPER32 = os.path.join(DIR_OBJ, '{}_vars_dump32.bat'.format(MSVS_LANDMARK.lower()))
 MSVS_VARS_WRAPPER64 = os.path.join(DIR_OBJ, '{}_vars_dump64.bat'.format(MSVS_LANDMARK.lower()))
@@ -146,11 +134,14 @@ def merge_env_value(patch, original=None):
     return os.pathsep.join([path_ext, original])
 
 
-def apply_environ_patch(env_patch):
+def apply_environ_patch(env_patch, origin=None):
     if env_patch is None:
         return None
     custom_env = {}
-    custom_env.update(os.environ)
+    if origin is None:
+        custom_env.update(os.environ)
+    else:
+        custom_env.update(origin)
     env_upkeys = { x.upper(): x for x in custom_env.keys() }
     for var_name, var_value_patch in env_patch.items():
         var_name_upper = var_name.upper()
@@ -228,21 +219,31 @@ def subprocess_with_msvs_environment(is_win64):
     else:
         env_patch = load_py_object(env_patch_file32)
         trace_dir = os.path.join(DIR_OBJ, 'bin-trace', 'msvs-win32')
-        openssl_srcdir = os.path.join(DIR_OBJ, 'openssl-src-msvs-win64')
-    custom_env = apply_environ_patch(env_patch)
+        openssl_srcdir = os.path.join(DIR_OBJ, 'openssl-src-msvs-win32')
 
     if os.path.exists(openssl_srcdir):
         shutil.rmtree(openssl_srcdir)
 
     mkdir_safe(openssl_srcdir)
+    tar_custom_env = apply_environ_patch({'PATH':[os.path.dirname(TAR_FOR_WINDOWS)]})
+    tar_argv = [TAR_FOR_WINDOWS, 'xf', os.path.join(DIR_OBJ, OPENSSL_ARC_NAME), '--strip-components=1', '--force-local', '-C', openssl_srcdir]
+    print("EXEC:> {}".format(' '.join(tar_argv)))
+    subprocess.check_call(tar_argv, env=tar_custom_env)
+
+    shutil.copyfile(os.path.join(DIR_OBJ, 'zlib', 'zlib.h'), os.path.join(openssl_srcdir, 'include', 'zlib.h'))
+    shutil.copyfile(os.path.join(DIR_OBJ, 'zlib', 'zconf.h'), os.path.join(openssl_srcdir, 'include', 'zconf.h'))
+
     mkdir_safe(trace_dir)
+
+    build_custom_env = apply_environ_patch(env_patch)
+    build_custom_env = apply_environ_patch({'PATH':[NASM_DIR]}, build_custom_env)
 
     ret_code = None
     output_file = os.path.join(trace_dir, 'build.log')
     with open(output_file, mode='wt') as ofh:
         with open(output_file, mode='rt') as ifh:
-            p = subprocess.Popen([sys.executable, __file__, '--worker', '--config', 'win64' if is_win64 else 'win32'],
-                env=custom_env, stdin=subprocess.DEVNULL, stdout=ofh, stderr=subprocess.STDOUT, universal_newlines=True)
+            p = subprocess.Popen([sys.executable, '-u', __file__, '--worker', '--config', 'win64' if is_win64 else 'win32'],
+                env=build_custom_env, stdin=subprocess.DEVNULL, stdout=ofh, stderr=subprocess.STDOUT, universal_newlines=True)
             while True:
                 line = ifh.readline()
                 if not line:
@@ -260,16 +261,65 @@ def subprocess_with_msvs_environment(is_win64):
     return ret_code
 
 
+def build_openssl(is_win64):
+    if is_win64:
+        openssl_srcdir = os.path.join(DIR_OBJ, 'openssl-src-msvs-win64')
+        openssl_target = 'VC-WIN64A'
+    else:
+        openssl_srcdir = os.path.join(DIR_OBJ, 'openssl-src-msvs-win32')
+        openssl_target = 'VC-WIN32 -DUNICODE -D_UNICODE'
+
+    openssl_conf_cmd = [PERL_FOR_WINDOWS, 'Configure']
+    openssl_conf_cmd += OPENSSL_OPTIONS.split()
+    openssl_conf_cmd += openssl_target.split()
+
+    print("EXEC:> {}".format(' '.join(openssl_conf_cmd)))
+    ret_code = subprocess.call(openssl_conf_cmd, cwd=openssl_srcdir)
+    if ret_code != 0:
+        return ret_code
+
+    print("EXEC:> nmake")
+    ret_code = subprocess.call(['nmake'], cwd=openssl_srcdir)
+    return ret_code
+
+
+def init():
+    if not os.path.isfile(os.path.join(DIR_OBJ, OPENSSL_ARC_NAME)):
+        curl_argv = [CURL_FOR_WINDOWS, '-L', '-o', os.path.join(DIR_OBJ, OPENSSL_ARC_NAME), OPENSSL_URL]
+        print("EXEC:> {}".format(' '.join(curl_argv)))
+        subprocess.check_call(curl_argv)
+
+    if not os.path.isfile(os.path.join(DIR_OBJ, ZLIB_ARC_NAME)):
+        curl_argv = [CURL_FOR_WINDOWS, '-L', '-o', os.path.join(DIR_OBJ, ZLIB_ARC_NAME), ZLIB_URL]
+        print("EXEC:> {}".format(' '.join(curl_argv)))
+        subprocess.check_call(curl_argv)
+ 
+    if not os.path.isdir(os.path.join(DIR_OBJ, 'zlib')):
+        os.makedirs(os.path.join(DIR_OBJ, 'zlib'))
+
+    if not os.listdir(os.path.join(DIR_OBJ, 'zlib')):
+        tar_custom_env = apply_environ_patch({'PATH':[os.path.dirname(TAR_FOR_WINDOWS)]})
+        tar_argv = [TAR_FOR_WINDOWS, 'xf', os.path.join(DIR_OBJ, ZLIB_ARC_NAME), '--strip-components=1', '--force-local', '-C', os.path.join(DIR_OBJ, 'zlib')]
+        print("EXEC:> {}".format(' '.join(tar_argv)))
+        subprocess.check_call(tar_argv, env=tar_custom_env)
+
+
 def main():
+    ret_code = 126
     parser = argparse.ArgumentParser()
     parser.add_argument('--config', nargs=1, choices=['win32', 'win64'], required=True)
+    parser.add_argument('--worker', action='store_true')
     args = parser.parse_args()
     try:
         is_win64 = True if args.config[0] == 'win64' else False
-        subprocess_with_msvs_environment(is_win64)
+        if args.worker:
+            ret_code = build_openssl(is_win64)
+        else:
+            init()
+            ret_code = subprocess_with_msvs_environment(is_win64)
     except BuildLogicError as ex:
         print("ERROR: {}".format(ex))
-
+    return ret_code
 
 if __name__ == '__main__':
     exit(main())

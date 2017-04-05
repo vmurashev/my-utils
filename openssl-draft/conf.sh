@@ -1,7 +1,10 @@
 ABI_ALL='mingw,mingw64,x86,x86_64,arm,arm64'
 ZLIB_URL='http://zlib.net/zlib-1.2.11.tar.gz'
 OPENSSL_URL='https://www.openssl.org/source/openssl-1.1.0e.tar.gz'
+OPENSSL_OPTIONS='shared zlib-dynamic no-deprecated disable-dynamic-engine'
 
 MSVS_LANDMARK='VS140COMNTOOLS'
 CURL_FOR_WINDOWS='C:\\Git\\usr\\bin\\curl.exe'
 TAR_FOR_WINDOWS='C:\\Git\\usr\\bin\\tar.exe'
+PERL_FOR_WINDOWS='C:\\Perl64\\bin\\perl.exe'
+NASM_DIR='C:\\NASM'
