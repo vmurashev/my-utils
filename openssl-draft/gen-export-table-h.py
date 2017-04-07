@@ -29,13 +29,10 @@ def load_export_list_from_def_file(lib_name, def_file):
                 inside_export = True
             continue
         if inside_export:
-            if tokens and not tokens[0].startswith('@'):
+            if tokens:
                 symbol = tokens[0]
-                symbol_enabled = True
-                if symbol_enabled:
-                    if symbol not in CRYPTO_WINONLY_API:
-                        export_list.append(symbol)
-                    export_lines.append(line)
+                export_list.append(symbol)
+                export_lines.append(line)
     if not export_section_found:
         raise Exception("'EXPORTS' section not found inside DEF file: '{}'".format(def_file))
     if not export_list:
