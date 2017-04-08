@@ -26,11 +26,18 @@ SSL_SHARED_MAKE_DIR = os.path.join(DIR_OPENSSL_SUBMODULE, 'build/ssl')
 
 APPS_MAKE_DIR = os.path.join(DIR_OPENSSL_SUBMODULE, 'build/apps')
 
-if not os.path.isfile(os.path.join(DIR_PROJECT_ROOT, 'minibuild.ini')):
-    if not os.path.isdir(DIR_OPENSSL_SUBMODULE_VENDOR):
-        os.makedirs(DIR_OPENSSL_SUBMODULE_VENDOR)
-    if not os.path.isdir(OPENSSL_HEADERS_DIR):
-        os.makedirs(OPENSSL_HEADERS_DIR)
+CRYPTO_WELLKNOWN_DEFINES = ['L_ENDIAN', 'OPENSSL_USE_NODELETE', 'NO_WINDOWS_BRAINDEATH']
+
+
+def init():
+    stamp_file = os.path.join(DIR_HERE, 'obj', 'draft-init.stamp')
+    if os.path.isfile(stamp_file):
+        return
+    if os.path.isdir(DIR_PROJECT_ROOT):
+        shutil.rmtree(DIR_PROJECT_ROOT)
+
+    os.makedirs(DIR_OPENSSL_SUBMODULE_VENDOR)
+    os.makedirs(OPENSSL_HEADERS_DIR)
     subprocess.check_call(['tar', 'xf', os.path.join(DIR_HERE, 'obj', os.path.basename(OPENSSL_URL)), '--strip-components=1', '-C', DIR_OPENSSL_SUBMODULE_VENDOR])
     subprocess.check_call("find . -name '*.s' -exec rm -f {} \;", shell=True, cwd=DIR_OPENSSL_SUBMODULE_VENDOR)
     subprocess.check_call("find . -name '*.S' -exec rm -f {} \;", shell=True, cwd=DIR_OPENSSL_SUBMODULE_VENDOR)
@@ -45,6 +52,9 @@ if not os.path.isfile(os.path.join(DIR_PROJECT_ROOT, 'minibuild.ini')):
             shutil.copyfile(os.path.join(DIR_OPENSSL_SUBMODULE_VENDOR, 'include/openssl', twh), os.path.join(OPENSSL_HEADERS_DIR, twh))
 
     shutil.rmtree(os.path.join(DIR_OPENSSL_SUBMODULE_VENDOR, 'include/openssl'))
+    shutil.rmtree(os.path.join(DIR_OPENSSL_SUBMODULE_VENDOR, 'ms'))
+    shutil.rmtree(os.path.join(DIR_OPENSSL_SUBMODULE_VENDOR, 'demos'))
+    shutil.rmtree(os.path.join(DIR_OPENSSL_SUBMODULE_VENDOR, 'fuzz'))
 
     for twh in os.listdir(os.path.join(DIR_HERE, 'tweaks')):
         if twh.startswith('opensslconf') and twh.endswith('.h'):
@@ -52,6 +62,9 @@ if not os.path.isfile(os.path.join(DIR_PROJECT_ROOT, 'minibuild.ini')):
 
     shutil.copyfile(os.path.join(DIR_HERE, 'tweaks', 'bn_conf.h'), os.path.join(DIR_OPENSSL_SUBMODULE_VENDOR, 'crypto/include/internal', 'bn_conf.h'))
     shutil.copyfile(os.path.join(DIR_HERE, 'tweaks', 'dso_conf.h'), os.path.join(DIR_OPENSSL_SUBMODULE_VENDOR, 'crypto/include/internal', 'dso_conf.h'))
+
+    with open(stamp_file, mode='w'):
+        pass
 
 
 def load_ini_config(path):
@@ -181,6 +194,13 @@ def gen_makefile_for_lib(lib_ini_name, lib_make_name, vendor_prefix, incd, maked
             print("", file=fh)
 
         print("", file=fh)
+        print("include_dir_list = [", file=fh)
+        for inc in incd:
+            print("  '{}',".format(inc), file=fh)
+        print("]", file=fh)
+        print("", file=fh)
+
+        print("", file=fh)
         print("src_search_dir_list = [", file=fh)
         for dir_name in sorted(dir_names):
             dir_name_norm = '/'.join([vendor_prefix, dir_name])
@@ -191,43 +211,52 @@ def gen_makefile_for_lib(lib_ini_name, lib_make_name, vendor_prefix, incd, maked
         if lib_make_name.startswith('crypto'):
             for arch in arch_list:
                 if arch == 'mingw':
-                    print("if BUILDSYS_TOOLSET_NAME == 'gcc':", file=fh)
+                    print("if BUILDSYS_TOOLSET_NAME == 'msvs':", file=fh)
+                    print("    src_search_dir_list_windows_x86 = [ '{}/crypto/arch/msvs-win32' ]".format(vendor_prefix), file=fh)
+                    print("else:", file=fh)
                     print("    src_search_dir_list_windows_x86 = [ '{}/crypto/arch/mingw-win32' ]".format(vendor_prefix), file=fh)
                 elif arch == 'mingw64':
-                    print("if BUILDSYS_TOOLSET_NAME == 'gcc':", file=fh)
+                    print("if BUILDSYS_TOOLSET_NAME == 'msvs':", file=fh)
+                    print("    src_search_dir_list_windows_x86_64 = [ '{}/crypto/arch/msvs-win64' ]".format(vendor_prefix), file=fh)
+                    print("else:", file=fh)
                     print("    src_search_dir_list_windows_x86_64 = [ '{}/crypto/arch/mingw-win64' ]".format(vendor_prefix), file=fh)
                 else:
                     print("src_search_dir_list_linux_{} = [ '{}/crypto/arch/linux-{}' ]".format(arch, vendor_prefix, arch), file=fh)
+            print("", file=fh)
 
-        print("", file=fh)
+        if lib_make_name.startswith('crypto'):
+            print("definitions_windows = ['DSO_WIN32', 'WIN32_LEAN_AND_MEAN', '_UNICODE', '_UNICODE']", file=fh)
+            print("definitions_posix = ['DSO_DLFCN', 'HAVE_DLFCN_H']", file=fh)
+            print("", file=fh)
+
+        if lib_make_name.startswith('ssl'):
+            print("definitions_windows = ['WIN32_LEAN_AND_MEAN', '_UNICODE', '_UNICODE']", file=fh)
+            print("", file=fh)
+
         print("definitions = [", file=fh)
+
+        if lib_make_name.startswith('crypto'):
+            for d in CRYPTO_WELLKNOWN_DEFINES:
+                print("  '{}',".format(d), file=fh)
         for d in sorted(common_defs):
             print("  '{}',".format(d), file=fh)
+        print("]", file=fh)
+        print("", file=fh)
+
         if lib_make_name.startswith('crypto'):
-            print("  'NO_WINDOWS_BRAINDEATH',", file=fh)
-        print("]", file=fh)
-        print("", file=fh)
-
-        print("", file=fh)
-        print("include_dir_list = [", file=fh)
-        for inc in incd:
-            print("  '{}',".format(inc), file=fh)
-        print("]", file=fh)
-        print("", file=fh)
-
-        for arch in arch_list:
-            if arch == 'mingw':
-                print("definitions_spec_mingw_win32 = [", file=fh)
-            elif arch == 'mingw64':
-                print("definitions_spec_mingw_win64 = [", file=fh)
-            else:
-                print("definitions_linux_{} = [".format(arch), file=fh)
-            for d in sorted(arch_def_map[arch]):
-                if d in common_defs:
-                    continue
-                print("  '{}',".format(d), file=fh)
-            print("]", file=fh)
-            print("", file=fh)
+            for arch in arch_list:
+                if arch == 'mingw':
+                    print("definitions_windows_x86 = [", file=fh)
+                elif arch == 'mingw64':
+                    print("definitions_windows_x86_64 = [", file=fh)
+                else:
+                    print("definitions_linux_{} = [".format(arch), file=fh)
+                for d in sorted(arch_def_map[arch]):
+                    if d in common_defs:
+                        continue
+                    print("  '{}',".format(d), file=fh)
+                print("]", file=fh)
+                print("", file=fh)
 
         print("", file=fh)
         print("build_list = [", file=fh)
@@ -236,53 +265,115 @@ def gen_makefile_for_lib(lib_ini_name, lib_make_name, vendor_prefix, incd, maked
         print("]", file=fh)
         print("", file=fh)
 
-        for arch in arch_list:
-            arch_asm_files[arch] = []
-            if arch == 'mingw':
-                print("build_spec_mingw_win32 = [", file=fh)
-            elif arch == 'mingw64':
-                print("build_spec_mingw_win64 = [", file=fh)
-            else:
-                print("build_list_linux_{} = [".format(arch), file=fh)
-            for f in sorted(arch_files_map[arch]):
-                f_name = os.path.basename(f)
-                if f_name.endswith('.c') and f_name in common_files_names:
+        if lib_make_name.startswith('crypto'):
+            for arch in arch_list:
+                arch_asm_files[arch] = []
+                if arch == 'mingw':
+                    print("build_spec_mingw_win32 = [", file=fh)
+                elif arch == 'mingw64':
+                    print("build_spec_mingw_win64 = [", file=fh)
+                else:
+                    print("build_list_linux_{} = [".format(arch), file=fh)
+                for f in sorted(arch_files_map[arch]):
+                    f_name = os.path.basename(f)
+                    if f_name.endswith('.c') and f_name in common_files_names:
+                        continue
+                    print("  '{}',".format(f_name), file=fh)
+                    if not f_name.endswith(".c"):
+                        if f not in arch_asm_files[arch]:
+                            arch_asm_files[arch].append(f)
+                print("]", file=fh)
+                print("", file=fh)
+
+            for arch in arch_list:
+                if arch == 'mingw':
+                    print("build_spec_msvs_win32 = [", file=fh)
+                elif arch == 'mingw64':
+                    print("build_spec_msvs_win64 = [", file=fh)
+                else:
                     continue
-                print("  '{}',".format(f_name), file=fh)
-                if not f_name.endswith(".c"):
-                    if f not in arch_asm_files[arch]:
-                        arch_asm_files[arch].append(f)
-            print("]", file=fh)
-            print("", file=fh)
+                for f in sorted(arch_files_map[arch]):
+                    f_name = os.path.basename(f)
+                    if f_name.endswith('.c') and f_name in common_files_names:
+                        continue
+                    f_name_msvs = os.path.splitext(f_name)[0] + '.asm'
+                    print("  '{}',".format(f_name_msvs), file=fh)
+                print("]", file=fh)
+                print("", file=fh)
 
-        if 'mingw' in arch_list:
-            print("if BUILDSYS_TOOLSET_NAME == 'gcc':", file=fh)
-            print("    definitions_windows_x86 = definitions_spec_mingw_win32", file=fh)
+            print("if BUILDSYS_TOOLSET_NAME == 'msvs':", file=fh)
+            print("    build_list_windows_x86 = build_spec_msvs_win32", file=fh)
+            print("    build_list_windows_x86_64 = build_spec_msvs_win64", file=fh)
+            print("else:", file=fh)
             print("    build_list_windows_x86 = build_spec_mingw_win32", file=fh)
-        print("", file=fh)
-        if 'mingw64' in arch_list:
-            print("if BUILDSYS_TOOLSET_NAME == 'gcc':", file=fh)
-            print("    definitions_windows_x86_64 = definitions_spec_mingw_win64", file=fh)
             print("    build_list_windows_x86_64 = build_spec_mingw_win64", file=fh)
-
 
     if def_file is not None:
         shutil.copyfile(def_file, os.path.join(makedir, os.path.basename(def_file)))
 
-    for arch in arch_list:
-        if arch == 'mingw':
-            af_dst_dir = os.path.join(DIR_OPENSSL_SUBMODULE_VENDOR, 'crypto/arch/mingw-win32')
-        elif arch == 'mingw64':
-            af_dst_dir = os.path.join(DIR_OPENSSL_SUBMODULE_VENDOR, 'crypto/arch/mingw-win64')
-        else:
-            af_dst_dir = os.path.join(DIR_OPENSSL_SUBMODULE_VENDOR, 'crypto/arch/linux-{}'.format(arch))
-        if not os.path.isdir(af_dst_dir):
-            os.makedirs(af_dst_dir)
+    if lib_make_name.startswith('crypto'):
+        for arch in arch_list:
+            if arch == 'mingw':
+                af_dst_dir = os.path.join(DIR_OPENSSL_SUBMODULE_VENDOR, 'crypto/arch/mingw-win32')
+            elif arch == 'mingw64':
+                af_dst_dir = os.path.join(DIR_OPENSSL_SUBMODULE_VENDOR, 'crypto/arch/mingw-win64')
+            else:
+                af_dst_dir = os.path.join(DIR_OPENSSL_SUBMODULE_VENDOR, 'crypto/arch/linux-{}'.format(arch))
+            if not os.path.isdir(af_dst_dir):
+                os.makedirs(af_dst_dir)
             for af in arch_asm_files[arch]:
                 src = os.path.normpath(os.path.join(DIR_HERE, 'obj/openssl-src-{}'.format(arch), af))
                 dst = os.path.join(af_dst_dir, os.path.basename(af))
-                print("Copy: {} >>> {}".format(src, dst))
-                shutil.copyfile(src, dst)
+                if not os.path.isfile(dst):
+                    print("Copy: {} >>> {}".format(src, dst))
+                    shutil.copyfile(src, dst)
+
+        if 'mingw' in arch_list or mingw64 in arch_list:
+            # working nasm is required for correct generation asm files for MSVS
+            subprocess.check_output(['nasm', '-v'])
+
+        for arch in arch_list:
+            if arch == 'mingw':
+                af_dst_dir = os.path.join(DIR_OPENSSL_SUBMODULE_VENDOR, 'crypto/arch/msvs-win32')
+            elif arch == 'mingw64':
+                af_dst_dir = os.path.join(DIR_OPENSSL_SUBMODULE_VENDOR, 'crypto/arch/msvs-win64')
+            else:
+                continue
+            if not os.path.isdir(af_dst_dir):
+                os.makedirs(af_dst_dir)
+            for af in arch_asm_files[arch]:
+                dst_path_autogen = os.path.join(af_dst_dir, os.path.splitext(os.path.basename(af))[0] + '.asm')
+                if os.path.isfile(dst_path_autogen):
+                    continue
+                src_path = os.path.normpath(os.path.join(DIR_HERE, 'obj/openssl-src-{}'.format(arch), af))
+                perl_gen_title = os.path.splitext(os.path.basename(src_path))[0]
+                while True:
+                    perl_generator = os.path.join(os.path.dirname(src_path), 'asm', perl_gen_title + '.pl')
+                    if not os.path.isfile(perl_generator):
+                        perl_generator = os.path.join(os.path.dirname(src_path), perl_gen_title + '.pl')
+                    if not os.path.isfile(perl_generator):
+                        if perl_gen_title == 'sha256-x86_64':
+                            perl_gen_title = 'sha512-x86_64'
+                            continue
+                    break
+                if not os.path.isfile(perl_generator):
+                    raise Exception("File not found - '{}'".format(perl_generator))
+
+                perl_gen_env = {}
+                perl_gen_env.update(os.environ)
+                perl_gen_env['ASM'] = 'nasm'
+
+                asm_target_model = 'nasm' if arch == 'mingw64' else 'win32n'
+                perl_gen_cmd = ['perl', perl_generator, asm_target_model]
+                if arch == 'mingw':
+                    perl_gen_cmd += ['-DOPENSSL_IA32_SSE2']
+                perl_gen_cmd += [dst_path_autogen]
+
+                print("::: EXEC ::: {}".format(' '.join(perl_gen_cmd)))
+                subprocess.check_call(perl_gen_cmd, env=perl_gen_env)
+                if not os.path.isfile(dst_path_autogen):
+                    raise Exception("Generated file not found - '{}'".format(dst_path_autogen))
+                print("::: Generated file ::: {}".format(dst_path_autogen))
 
 
 def cleanup_dir(dir_name):
@@ -299,6 +390,7 @@ def cleanup_dir(dir_name):
 
 
 def main():
+    init()
     arch_map = {}
     arch_list = ABI_ALL.split(',')
     for arch in arch_list:

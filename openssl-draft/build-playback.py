@@ -10,6 +10,23 @@ with open(os.path.join(DIR_HERE, 'conf.sh'), mode='rt') as conf_sh:
 
 KNOWN_TOOLS = ['gcc', 'ar', 'ranlib', 'windres']
 
+DEFINES_DISABLED = [
+    'ZLIB_SHARED',
+    'L_ENDIAN',
+    'OPENSSL_NO_DSO',
+    'OPENSSL_USE_NODELETE',
+    'DSO_WIN32',
+    'DSO_DLFCN',
+    'HAVE_DLFCN_H',
+    'OPENSSL_USE_APPLINK',
+    'WIN32_LEAN_AND_MEAN',
+    '_UNICODE',
+    'UNICODE',
+    '_MT',
+    '_WINDLL',
+]
+
+FILES_DISABLED = ['dso_dl.c', 'dso_openssl.c', 'applink.c', 'uplink.c']
 
 def norm_build_dir(arg):
     bits = []
@@ -20,6 +37,14 @@ def norm_build_dir(arg):
         elif v.startswith('openssl-src-'):
             got = True
     return '/'.join(bits)
+
+
+def is_define_enabled(d):
+    if d in DEFINES_DISABLED:
+        return False
+    if d.startswith('ENGINESDIR'):
+        return False
+    return True
 
 
 def parse_build_log(input_log, output_ini):
@@ -85,7 +110,8 @@ def parse_build_log(input_log, output_ini):
                     src_defs = []
                     for d in cmdline:
                         if d.startswith('-D'):
-                            if d != '-DZLIB_SHARED' and not d.startswith('-DENGINESDIR'):
+                            define_value = d[2:]
+                            if is_define_enabled(define_value):
                                 src_defs.append(d[2:])
                     src = src_line
                     if '/' in src:
@@ -156,7 +182,8 @@ def parse_build_log(input_log, output_ini):
             print("BUILD_LIST = ", file=fh)
             for item in LIBS_MAP[lib_name]:
                 item_path = SRC_MAP[item]
-                print("    {}".format(item_path), file=fh)
+                if os.path.basename(item_path) not in FILES_DISABLED  and not os.path.basename(item_path).startswith('uplink'):
+                    print("    {}".format(item_path), file=fh)
             print('', file=fh)
 
 

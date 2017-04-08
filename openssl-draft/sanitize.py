@@ -50,9 +50,17 @@ def eval_unused_files(used_headers, used_sources, required_files, unused_files):
                         b = fname[0:-len(e)]
                         if b in used_sources:
                             file_in_use =True
+
+            unused_subject = os.path.join(root, fname)
             if not file_in_use:
-                unused_subject = os.path.join(root, fname)
-                if unused_subject not in required_files:
+                if unused_subject in required_files:
+                    file_in_use = True
+                if 'msvs-win32' in unused_subject:
+                    file_in_use = True
+                elif 'msvs-win64' in unused_subject:
+                    file_in_use = True
+
+                if not file_in_use:
                     unused_files.append(unused_subject)
 
 

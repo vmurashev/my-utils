@@ -2,6 +2,8 @@
 
 import argparse
 
+EXPORTS_DISABLED = ['OPENSSL_Uplink']
+
 
 def load_export_list_from_def_file(lib_name, def_file):
     export_section_found = False
@@ -31,8 +33,9 @@ def load_export_list_from_def_file(lib_name, def_file):
         if inside_export:
             if tokens:
                 symbol = tokens[0]
-                export_list.append(symbol)
-                export_lines.append(line)
+                if symbol not in EXPORTS_DISABLED:
+                    export_list.append(symbol)
+                    export_lines.append(line)
     if not export_section_found:
         raise Exception("'EXPORTS' section not found inside DEF file: '{}'".format(def_file))
     if not export_list:
