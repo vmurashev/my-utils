@@ -1,8 +1,16 @@
-#if defined(__MINGW32__)
+#if defined(_WIN32)
 #  if defined(_WIN64)
-#    include "opensslconf_mingw64.h"
+#    if defined(_MSC_VER)
+#      include "opensslconf_msvs64.h"
+#    else
+#      include "opensslconf_mingw64.h"
+#    endif
 #  else
-#    include "opensslconf_mingw32.h"
+#    if defined(_MSC_VER)
+#      include "opensslconf_msvs32.h"
+#    else
+#      include "opensslconf_mingw32.h"
+#    endif
 #  endif
 #elif defined(__linux__)
 #  if defined(__x86_64__)
