@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import argparse
 import os.path
 import inspect
@@ -7,6 +9,13 @@ import ctypes
 import sys
 import time
 import shutil
+
+
+try:
+    from subprocess import DEVNULL
+except ImportError:
+    import os
+    DEVNULL = open(os.devnull, 'wb')
 
 
 DIR_HERE = os.path.normpath(os.path.abspath(os.path.dirname(__file__)))
@@ -243,7 +252,7 @@ def subprocess_with_msvs_environment(is_win64):
     with open(output_file, mode='wt') as ofh:
         with open(output_file, mode='rt') as ifh:
             p = subprocess.Popen([sys.executable, '-u', __file__, '--worker', '--config', 'win64' if is_win64 else 'win32'],
-                env=build_custom_env, stdin=subprocess.DEVNULL, stdout=ofh, stderr=subprocess.STDOUT, universal_newlines=True)
+                env=build_custom_env, stdin=DEVNULL, stdout=ofh, stderr=subprocess.STDOUT, universal_newlines=True)
             while True:
                 line = ifh.readline()
                 if not line:
