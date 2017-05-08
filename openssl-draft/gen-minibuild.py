@@ -209,19 +209,22 @@ def gen_makefile_for_lib(lib_ini_name, lib_make_name, vendor_prefix, incd, maked
         print("", file=fh)
 
         if lib_make_name.startswith('crypto'):
+            print("if BUILDSYS_TOOLSET_NAME == 'msvs':", file=fh)
+            print("    nasm = 1", file=fh)
+            print("    asm_definitions_windows_x86_64 = ['NEAR']",  file=fh)
+            print("    asm_search_dir_list_windows_x86 = [ '{}/crypto/arch/msvs-win32' ]".format(vendor_prefix), file=fh)
+            print("    asm_search_dir_list_windows_x86_64 = [ '{}/crypto/arch/msvs-win64' ]".format(vendor_prefix), file=fh)
+            print("else:", file=fh)
+            print("    asm_search_dir_list_windows_x86 = [ '{}/crypto/arch/mingw-win32' ]".format(vendor_prefix), file=fh)
+            print("    asm_search_dir_list_windows_x86_64 = [ '{}/crypto/arch/mingw-win64' ]".format(vendor_prefix), file=fh)
+            print("", file=fh)
             for arch in arch_list:
                 if arch == 'mingw':
-                    print("if BUILDSYS_TOOLSET_NAME == 'msvs':", file=fh)
-                    print("    src_search_dir_list_windows_x86 = [ '{}/crypto/arch/msvs-win32' ]".format(vendor_prefix), file=fh)
-                    print("else:", file=fh)
-                    print("    src_search_dir_list_windows_x86 = [ '{}/crypto/arch/mingw-win32' ]".format(vendor_prefix), file=fh)
+                    pass
                 elif arch == 'mingw64':
-                    print("if BUILDSYS_TOOLSET_NAME == 'msvs':", file=fh)
-                    print("    src_search_dir_list_windows_x86_64 = [ '{}/crypto/arch/msvs-win64' ]".format(vendor_prefix), file=fh)
-                    print("else:", file=fh)
-                    print("    src_search_dir_list_windows_x86_64 = [ '{}/crypto/arch/mingw-win64' ]".format(vendor_prefix), file=fh)
+                    pass
                 else:
-                    print("src_search_dir_list_linux_{} = [ '{}/crypto/arch/linux-{}' ]".format(arch, vendor_prefix, arch), file=fh)
+                    print("asm_search_dir_list_linux_{} = [ '{}/crypto/arch/linux-{}' ]".format(arch, vendor_prefix, arch), file=fh)
             print("", file=fh)
 
         if lib_make_name.startswith('crypto'):
@@ -296,7 +299,10 @@ def gen_makefile_for_lib(lib_ini_name, lib_make_name, vendor_prefix, incd, maked
                     f_name = os.path.basename(f)
                     if f_name.endswith('.c') and f_name in common_files_names:
                         continue
-                    f_name_msvs = os.path.splitext(f_name)[0] + '.asm'
+                    if f_name.endswith('.c'):
+                        f_name_msvs = f_name
+                    else:
+                        f_name_msvs = os.path.splitext(f_name)[0] + '.asm'
                     print("  '{}',".format(f_name_msvs), file=fh)
                 print("]", file=fh)
                 print("", file=fh)
