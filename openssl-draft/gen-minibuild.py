@@ -27,7 +27,7 @@ SSL_SHARED_MAKE_DIR = os.path.join(DIR_OPENSSL_SUBMODULE, 'build/ssl')
 APPS_MAKE_DIR = os.path.join(DIR_OPENSSL_SUBMODULE, 'build/apps')
 
 CRYPTO_WELLKNOWN_DEFINES = ['L_ENDIAN', 'OPENSSL_USE_NODELETE', 'NO_WINDOWS_BRAINDEATH']
-
+OPENSSL_USELESS_FILES_LIST = OPENSSL_USELESS_FILES.split()
 
 def init():
     stamp_file = os.path.join(DIR_HERE, 'obj', 'draft-init.stamp')
@@ -115,7 +115,12 @@ def gen_makefile_for_lib(lib_ini_name, lib_make_name, vendor_prefix, incd, maked
     arch_def_map = {}
 
     for arch in arch_list:
-        arch_files_map[arch] = get_ini_conf_strings(arch_map[arch], lib_ini_name, 'BUILD_LIST')
+        flist_tmp = get_ini_conf_strings(arch_map[arch], lib_ini_name, 'BUILD_LIST')
+        arch_files_map[arch] = []
+        for f in flist_tmp:
+            if os.path.basename(f) in OPENSSL_USELESS_FILES_LIST:
+                continue
+            arch_files_map[arch].append(f)
         arch_def_map[arch] = get_ini_conf_strings(arch_map[arch], lib_ini_name, 'DEF_LIST')
         for f in arch_files_map[arch]:
             all_files.add(f)

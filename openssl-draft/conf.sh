@@ -2,6 +2,7 @@ ABI_ALL='mingw,mingw64,x86,x86_64,arm,arm64'
 ZLIB_URL='http://zlib.net/zlib-1.2.11.tar.gz'
 OPENSSL_URL='https://www.openssl.org/source/openssl-1.1.0e.tar.gz'
 OPENSSL_OPTIONS='shared zlib-dynamic no-deprecated disable-dynamic-engine'
+OPENSSL_USELESS_FILES='rsa_depr.c rand_egd.c ecp_nistputil.c ecp_nistp521.c ecp_nistp256.c ecp_nistp224.c ebcdic.c e_old.c dsa_depr.c dh_depr.c bn_depr.c'
 
 MSVS_LANDMARK='VS140COMNTOOLS'
 CURL_FOR_WINDOWS='C:\\Git\\usr\\bin\\curl.exe'
