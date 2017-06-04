@@ -28,12 +28,29 @@ minibuild --directory $DIR_HERE/shlib_verify_export --model gcc-xt-linux-x86_64 
 minibuild --directory $DIR_HERE/shlib_verify_export --model gcc-xt-linux-arm --config release
 minibuild --directory $DIR_HERE/shlib_verify_export --model gcc-xt-linux-arm64 --config release
 
-export LD_LIBRARY_PATH=$DIR_HERE/draft/output/shared/gcc-xt-linux-x86
-$DIR_HERE/shlib_verify_export/output/exe/gcc-xt-linux-x86/release/shlib_verify_export \
-    $DIR_HERE/draft/output/shared/gcc-xt-linux-x86/release/libcrypto.so \
-    $DIR_HERE/draft/output/shared/gcc-xt-linux-x86/release/libssl.so
 
-export LD_LIBRARY_PATH=$DIR_HERE/draft/output/shared/gcc-xt-linux-x86_64
-$DIR_HERE/shlib_verify_export/output/exe/gcc-xt-linux-x86_64/release/shlib_verify_export \
-    $DIR_HERE/draft/output/shared/gcc-xt-linux-x86_64/release/libcrypto.so \
+(
+  $DIR_HERE/shlib_verify_export/output/exe/gcc-xt-linux-x86/release/shlib_verify_export \
+      $DIR_HERE/draft/output/shared/gcc-xt-linux-x86/release/libcrypto.so \
+      -
+)
+
+(
+  export LD_PRELOAD=$DIR_HERE/draft/output/shared/gcc-xt-linux-x86/release/libcrypto.so
+  $DIR_HERE/shlib_verify_export/output/exe/gcc-xt-linux-x86/release/shlib_verify_export \
+    - \
+    $DIR_HERE/draft/output/shared/gcc-xt-linux-x86/release/libssl.so
+)
+
+(
+  $DIR_HERE/shlib_verify_export/output/exe/gcc-xt-linux-x86_64/release/shlib_verify_export \
+      $DIR_HERE/draft/output/shared/gcc-xt-linux-x86_64/release/libcrypto.so \
+      -
+)
+
+(
+  export LD_PRELOAD=$DIR_HERE/draft/output/shared/gcc-xt-linux-x86_64/release/libcrypto.so
+  $DIR_HERE/shlib_verify_export/output/exe/gcc-xt-linux-x86_64/release/shlib_verify_export \
+    - \
     $DIR_HERE/draft/output/shared/gcc-xt-linux-x86_64/release/libssl.so
+)

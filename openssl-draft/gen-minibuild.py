@@ -31,9 +31,9 @@ OPENSSL_USELESS_FILES_LIST = OPENSSL_USELESS_FILES.split()
 
 def init():
     stamp_file = os.path.join(DIR_HERE, 'obj', 'draft-init.stamp')
-    if os.path.isfile(stamp_file):
-        return
     if os.path.isdir(DIR_PROJECT_ROOT):
+        if os.path.isfile(stamp_file):
+            return
         shutil.rmtree(DIR_PROJECT_ROOT)
 
     os.makedirs(DIR_OPENSSL_SUBMODULE_VENDOR)
@@ -57,7 +57,8 @@ def init():
     shutil.rmtree(os.path.join(DIR_OPENSSL_SUBMODULE_VENDOR, 'fuzz'))
 
     for twh in os.listdir(os.path.join(DIR_HERE, 'tweaks')):
-        if twh.startswith('opensslconf') and twh.endswith('.h'):
+        # if twh.startswith('opensslconf') and twh.endswith('.h'):
+        if twh == 'opensslconf.h':
             shutil.copyfile(os.path.join(DIR_HERE, 'tweaks', twh), os.path.join(OPENSSL_HEADERS_DIR, twh))
 
     shutil.copyfile(os.path.join(DIR_HERE, 'tweaks', 'bn_conf.h'), os.path.join(DIR_OPENSSL_SUBMODULE_VENDOR, 'crypto/include/internal', 'bn_conf.h'))
