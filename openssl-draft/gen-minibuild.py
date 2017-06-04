@@ -187,7 +187,7 @@ def gen_makefile_for_lib(lib_ini_name, lib_make_name, vendor_prefix, incd, maked
             print("symbol_visibility_default = 1", file=fh)
             print("", file=fh)
             print("prebuilt_lib_list_linux = ['dl','pthread']", file=fh)
-            print("prebuilt_lib_list_windows = ['crypt32', 'ws2_32']", file=fh)
+            print("prebuilt_lib_list_windows = ['crypt32', 'ws2_32', 'advapi32', 'user32']", file=fh)
             print("", file=fh)
             print("lib_list = ['../../../zlib']", file=fh)
             print("", file=fh)
@@ -199,6 +199,9 @@ def gen_makefile_for_lib(lib_ini_name, lib_make_name, vendor_prefix, incd, maked
             print("symbol_visibility_default = 1", file=fh)
             print("", file=fh)
 
+        print("", file=fh)
+        print("if BUILDSYS_TOOLSET_NAME == 'msvs':", file=fh)
+        print("    disabled_warnings = ['4090']", file=fh)
         print("", file=fh)
         print("include_dir_list = [", file=fh)
         for inc in incd:
