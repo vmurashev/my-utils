@@ -15,7 +15,7 @@ import shutil
 
 
 POKY_URL = 'git://git.yoctoproject.org/poky'
-POKY_RELEASE = 'morty'
+POKY_RELEASE = 'pyro'
 
 DIR_HERE = os.path.normpath(os.path.abspath(os.path.dirname(__file__)))
 DIR_ROOT = os.path.normpath(os.path.join(DIR_HERE, '..'))
