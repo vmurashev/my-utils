@@ -50,7 +50,7 @@ def load_ini_config(path):
 
 
 def get_ini_conf_string1(config, section, option):
-    return config.get(section, option).strip()
+    return config.get(section, option).strip().replace('\n', ' ')
 
 
 def touch_file(fname):
