@@ -1,6 +1,7 @@
-#!/usr/bin/env python3
-
+#!/usr/bin/env python
+from __future__ import print_function
 import os.path
+import sys
 
 DIR_HERE = os.path.normpath(os.path.abspath(os.path.dirname(__file__)))
 
@@ -8,7 +9,10 @@ with open(os.path.join(DIR_HERE, 'conf.sh'), mode='rt') as conf_sh:
     exec(compile(conf_sh.read(), os.path.join(DIR_HERE, 'conf.sh'), 'exec'))
 
 
-KNOWN_TOOLS = ['gcc', 'ar', 'ranlib', 'windres']
+if sys.platform == 'darwin':
+    KNOWN_TOOLS = ['cc', 'ar', 'ranlib']
+else:
+    KNOWN_TOOLS = ['gcc', 'ar', 'ranlib', 'windres']
 
 DEFINES_DISABLED = [
     'ZLIB_SHARED',
@@ -70,16 +74,22 @@ def parse_build_log(input_log, output_ini):
         cmdline = bits[0].strip().rstrip('\\').split()
         if len(cmdline) == 1 and cmdline[0] == '--version':
             continue
+        if sys.platform == 'darwin':
+            if len(cmdline) == 1 and cmdline[0] == '-v':
+                continue
         if len(cmdline) == 3 and cmdline[0] == '-E' and cmdline[1] == '-P' and cmdline[2] == '-':
             continue
-        tool = bits[1].rsplit('-',1)[1].strip()
+        if '-' in bits[1]:
+            tool = bits[1].rsplit('-',1)[1].strip()
+        else:
+            tool = bits[1].strip()
         exec_dir = norm_build_dir(bits[2])
 
         if tool not in KNOWN_TOOLS:
             print("UNKNOWN TOOL '{}' AT LINE@{}: ---{}---".format(tool, line_number, line))
             raise Exception("BAD LINE")
 
-        if tool == 'gcc':
+        if tool in ['gcc', 'cc']:
             if '-c' not in cmdline:
                 so_name = None
                 exe_name = None
@@ -188,7 +198,10 @@ def parse_build_log(input_log, output_ini):
 
 
 if __name__ == '__main__':
-    arch_list = ABI_ALL.split(',')
+    if sys.platform == 'darwin':
+        arch_list = ['macosx']
+    else:
+        arch_list = ABI_ALL.split(',')
     for arch in arch_list:
         playback_log = os.path.normpath(os.path.join(DIR_HERE, 'obj/bin-trace/{}/build.log'.format(arch)))
         playback_ini = os.path.normpath(os.path.join(DIR_HERE, 'obj/bin-trace/{}/build.ini'.format(arch)))
