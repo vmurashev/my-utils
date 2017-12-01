@@ -234,15 +234,17 @@ def gen_makefile_for_lib(lib_ini_name, lib_make_name, vendor_prefix, incd, maked
                     pass
                 else:
                     print("asm_search_dir_list_linux_{} = [ '{}/crypto/arch/linux-{}' ]".format(arch, vendor_prefix, arch), file=fh)
+            if 'x86_64' in arch_list:
+                    print("asm_search_dir_list_macosx = [ '{}/crypto/arch/macosx' ]".format(vendor_prefix), file=fh)
             print("", file=fh)
 
         if lib_make_name.startswith('crypto'):
-            print("definitions_windows = ['DSO_WIN32', 'WIN32_LEAN_AND_MEAN', '_UNICODE', '_UNICODE']", file=fh)
+            print("definitions_windows = ['DSO_WIN32', 'WIN32_LEAN_AND_MEAN', '_UNICODE', 'UNICODE']", file=fh)
             print("definitions_posix = ['DSO_DLFCN', 'HAVE_DLFCN_H']", file=fh)
             print("", file=fh)
 
         if lib_make_name.startswith('ssl'):
-            print("definitions_windows = ['WIN32_LEAN_AND_MEAN', '_UNICODE', '_UNICODE']", file=fh)
+            print("definitions_windows = ['WIN32_LEAN_AND_MEAN', '_UNICODE', 'UNICODE']", file=fh)
             print("", file=fh)
 
         print("definitions = [", file=fh)
@@ -264,6 +266,14 @@ def gen_makefile_for_lib(lib_ini_name, lib_make_name, vendor_prefix, incd, maked
                 else:
                     print("definitions_linux_{} = [".format(arch), file=fh)
                 for d in sorted(arch_def_map[arch]):
+                    if d in common_defs:
+                        continue
+                    print("  '{}',".format(d), file=fh)
+                print("]", file=fh)
+                print("", file=fh)
+            if 'x86_64' in arch_list:
+                print("definitions_macosx = [", file=fh)
+                for d in sorted(arch_def_map['x86_64']):
                     if d in common_defs:
                         continue
                     print("  '{}',".format(d), file=fh)
@@ -294,6 +304,15 @@ def gen_makefile_for_lib(lib_ini_name, lib_make_name, vendor_prefix, incd, maked
                     if not f_name.endswith(".c"):
                         if f not in arch_asm_files[arch]:
                             arch_asm_files[arch].append(f)
+                print("]", file=fh)
+                print("", file=fh)
+            if 'x86_64' in arch_list:
+                print("build_list_macosx = [", file=fh)
+                for f in sorted(arch_files_map['x86_64']):
+                    f_name = os.path.basename(f)
+                    if f_name.endswith('.c') and f_name in common_files_names:
+                        continue
+                    print("  '{}',".format(f_name), file=fh)
                 print("]", file=fh)
                 print("", file=fh)
 
@@ -352,15 +371,23 @@ def gen_makefile_for_lib(lib_ini_name, lib_make_name, vendor_prefix, incd, maked
                 af_dst_dir = os.path.join(DIR_OPENSSL_SUBMODULE_VENDOR, 'crypto/arch/msvs-win32')
             elif arch == 'mingw64':
                 af_dst_dir = os.path.join(DIR_OPENSSL_SUBMODULE_VENDOR, 'crypto/arch/msvs-win64')
+            elif arch == 'x86_64':
+                af_dst_dir = os.path.join(DIR_OPENSSL_SUBMODULE_VENDOR, 'crypto/arch/macosx')
             else:
                 continue
             if not os.path.isdir(af_dst_dir):
                 os.makedirs(af_dst_dir)
             for af in arch_asm_files[arch]:
-                dst_path_autogen = os.path.join(af_dst_dir, os.path.splitext(os.path.basename(af))[0] + '.asm')
+                if arch in ['mingw', 'mingw64']:
+                    dst_path_autogen = os.path.join(af_dst_dir, os.path.splitext(os.path.basename(af))[0] + '.asm')
+                else:
+                    dst_path_autogen = os.path.join(af_dst_dir, os.path.splitext(os.path.basename(af))[0] + '.s')
                 if os.path.isfile(dst_path_autogen):
                     continue
-                src_path = os.path.normpath(os.path.join(DIR_HERE, 'obj/openssl-src-{}'.format(arch), af))
+                if arch in ['mingw', 'mingw64']:
+                    src_path = os.path.normpath(os.path.join(DIR_HERE, 'obj/openssl-src-{}'.format(arch), af))
+                else:
+                    src_path = os.path.normpath(os.path.join(DIR_HERE, 'obj/openssl-src-x86_64', af))
                 perl_gen_title = os.path.splitext(os.path.basename(src_path))[0]
                 while True:
                     perl_generator = os.path.join(os.path.dirname(src_path), 'asm', perl_gen_title + '.pl')
@@ -376,9 +403,12 @@ def gen_makefile_for_lib(lib_ini_name, lib_make_name, vendor_prefix, incd, maked
 
                 perl_gen_env = {}
                 perl_gen_env.update(os.environ)
-                perl_gen_env['ASM'] = 'nasm'
-
-                asm_target_model = 'nasm' if arch == 'mingw64' else 'win32n'
+                if arch in ['mingw', 'mingw64']:
+                    perl_gen_env['ASM'] = 'nasm'
+                    asm_target_model = 'nasm' if arch == 'mingw64' else 'win32n'
+                else:
+                    perl_gen_env['CC'] = 'cc'
+                    asm_target_model = 'macosx'
                 perl_gen_cmd = ['perl', perl_generator, asm_target_model]
                 if arch == 'mingw':
                     perl_gen_cmd += ['-DOPENSSL_IA32_SSE2']

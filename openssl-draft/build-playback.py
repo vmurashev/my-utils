@@ -71,7 +71,7 @@ def parse_build_log(input_log, output_ini):
             print("BAD LINE@{}: ---{}---".format(line_number, line))
             raise Exception("BAD LINE")
 
-        cmdline = bits[0].strip().rstrip('\\').split()
+        cmdline = bits[0].strip().split()
         if len(cmdline) == 1 and cmdline[0] == '--version':
             continue
         if sys.platform == 'darwin':
@@ -141,7 +141,7 @@ def parse_build_log(input_log, output_ini):
             if cmdline[0] != 'r':
                 print("BAD LINE@{}: ---{}---".format(line_number, line))
                 raise Exception("BAD LINE")
-            lib_name = os.path.basename(cmdline[1].rstrip('\\').strip())
+            lib_name = os.path.basename(cmdline[1].strip())
             if lib_name.startswith('lib') and lib_name.endswith('.a'):
                 lib_name = lib_name[3:-2]
             if lib_name not in LIBS_MAP:

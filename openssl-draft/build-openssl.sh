@@ -105,7 +105,7 @@ build_target_openssl ()
             echo '        ARGS="$ARGS $p"'
             echo '    fi'
             echo 'done'
-            echo "echo \"\$ARGS\ | \$ME | \$(pwd)\" >> $BIN_TRACE_DIR/build.log"
+            echo "echo \"\$ARGS | \$ME | \$(pwd)\" >> $BIN_TRACE_DIR/build.log"
             echo 'exec $XT_EXE $ARGS'
         } > $XT_EXE_WRAPPER
 
