@@ -170,45 +170,59 @@ def gen_makefile_for_lib(lib_ini_name, lib_make_name, vendor_prefix, incd, maked
     if not os.path.isdir(makedir):
         os.makedirs(makedir)
 
-    with open(os.path.join(makedir, 'minibuild.mk'), mode='wt') as fh:
-        if is_shared:
-            print("module_type = 'lib-shared'", file=fh)
-        else:
-            print("module_type = 'lib-static'", file=fh)
-        print("module_name = '{}'".format(lib_make_name), file=fh)
-
-        if def_file is not None:
+    if is_shared:
+        shutil.copyfile(def_file, os.path.join(makedir, os.path.basename(def_file)))
+        with open(os.path.join(makedir, 'minibuild.mk'), mode='wt') as fh:
+            if lib_make_name == 'crypto':
+                print('#include "../crypto_static/crypto.inc"', file=fh)
+            if lib_make_name == 'ssl':
+                print('#include "../ssl_static/ssl.inc"', file=fh)
             print("", file=fh)
+            print("module_type = 'lib-shared'", file=fh)
+            print("module_name = '{}'".format(lib_make_name), file=fh)
+            if lib_make_name == 'crypto':
+                print("", file=fh)
+                print("symbol_visibility_default = 1", file=fh)
+                print("", file=fh)
+                print("prebuilt_lib_list_linux = ['dl','pthread']", file=fh)
+                print("prebuilt_lib_list_windows = ['crypt32', 'ws2_32', 'advapi32', 'user32']", file=fh)
+                print("", file=fh)
+                print("lib_list = ['${@project_root}/zlib']", file=fh)
+                print("", file=fh)
+
+            if lib_make_name == 'ssl':
+                print("", file=fh)
+                print("lib_list = ['../crypto']", file=fh)
+                print("", file=fh)
+                print("symbol_visibility_default = 1", file=fh)
+                print("", file=fh)
+
             print("export_def_file = '{}'".format(os.path.basename(def_file)), file=fh)
             print("", file=fh)
 
-        if lib_make_name == 'crypto':
-            print("", file=fh)
-            print("symbol_visibility_default = 1", file=fh)
-            print("", file=fh)
-            print("prebuilt_lib_list_linux = ['dl','pthread']", file=fh)
-            print("prebuilt_lib_list_windows = ['crypt32', 'ws2_32', 'advapi32', 'user32']", file=fh)
-            print("", file=fh)
-            print("lib_list = ['../../../zlib']", file=fh)
-            print("", file=fh)
 
-        if lib_make_name == 'ssl':
-            print("", file=fh)
-            print("lib_list = ['../crypto']", file=fh)
-            print("", file=fh)
-            print("symbol_visibility_default = 1", file=fh)
-            print("", file=fh)
+    if is_shared:
+        return
+    inc_file = None
+    if lib_make_name == 'crypto_static':
+        inc_file = os.path.join(makedir, 'crypto.inc')
+    if lib_make_name == 'ssl_static':
+        inc_file = os.path.join(makedir, 'ssl.inc')
 
+    with open(os.path.join(makedir, 'minibuild.mk'), mode='wt') as fh:
+        if lib_make_name == 'crypto_static':
+            print('#include "crypto.inc"', file=fh)
+        if lib_make_name == 'ssl_static':
+            print('#include "ssl.inc"', file=fh)
         print("", file=fh)
-        print("if BUILDSYS_TOOLSET_NAME == 'msvs':", file=fh)
-        print("    disabled_warnings = ['4090']", file=fh)
-        print("", file=fh)
+        print("module_type = 'lib-static'", file=fh)
+        print("module_name = '{}'".format(lib_make_name), file=fh)
+
+    with open(inc_file, mode='wt') as fh:
         print("include_dir_list = [", file=fh)
         for inc in incd:
             print("  '{}',".format(inc), file=fh)
         print("]", file=fh)
-        print("", file=fh)
-
         print("", file=fh)
         print("src_search_dir_list = [", file=fh)
         for dir_name in sorted(dir_names):
@@ -219,6 +233,7 @@ def gen_makefile_for_lib(lib_ini_name, lib_make_name, vendor_prefix, incd, maked
 
         if lib_make_name.startswith('crypto'):
             print("if BUILDSYS_TOOLSET_NAME == 'msvs':", file=fh)
+            print("    disabled_warnings = ['4090']", file=fh)
             print("    nasm = 1", file=fh)
             print("    asm_definitions_windows_x86_64 = ['NEAR']",  file=fh)
             print("    asm_search_dir_list_windows_x86 = [ '{}/crypto/arch/msvs-win32' ]".format(vendor_prefix), file=fh)
@@ -280,7 +295,6 @@ def gen_makefile_for_lib(lib_ini_name, lib_make_name, vendor_prefix, incd, maked
                 print("]", file=fh)
                 print("", file=fh)
 
-        print("", file=fh)
         print("build_list = [", file=fh)
         for f_name in sorted(common_files_names):
             print("  '{}',".format(f_name), file=fh)
@@ -341,9 +355,6 @@ def gen_makefile_for_lib(lib_ini_name, lib_make_name, vendor_prefix, incd, maked
             print("else:", file=fh)
             print("    build_list_windows_x86 = build_spec_mingw_win32", file=fh)
             print("    build_list_windows_x86_64 = build_spec_mingw_win64", file=fh)
-
-    if def_file is not None:
-        shutil.copyfile(def_file, os.path.join(makedir, os.path.basename(def_file)))
 
     if lib_make_name.startswith('crypto'):
         for arch in arch_list:
@@ -449,7 +460,7 @@ def main():
         '../../vendor/crypto/include',
         '../../vendor/crypto',
         '../../vendor/crypto/modes',
-        '../../../zlib/include',
+        '${@project_root}/zlib/include',
     ]
 
     ssl_incd = [
