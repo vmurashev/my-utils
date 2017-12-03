@@ -28,6 +28,8 @@ APPS_MAKE_DIR = os.path.join(DIR_OPENSSL_SUBMODULE, 'build/apps')
 
 CRYPTO_WELLKNOWN_DEFINES = ['L_ENDIAN', 'OPENSSL_USE_NODELETE', 'NO_WINDOWS_BRAINDEATH']
 OPENSSL_USELESS_FILES_LIST = OPENSSL_USELESS_FILES.split()
+OPENSSL_POSIX_FILES_LIST = OPENSSL_POSIX_FILES.split()
+OPENSSL_WINDOWS_FILES_LIST = OPENSSL_WINDOWS_FILES.split()
 
 def init():
     stamp_file = os.path.join(DIR_HERE, 'obj', 'draft-init.stamp')
@@ -116,10 +118,17 @@ def gen_makefile_for_lib(lib_ini_name, lib_make_name, vendor_prefix, incd, maked
     arch_def_map = {}
 
     for arch in arch_list:
+        posix_and_win_files = []
         flist_tmp = get_ini_conf_strings(arch_map[arch], lib_ini_name, 'BUILD_LIST')
         arch_files_map[arch] = []
         for f in flist_tmp:
             if os.path.basename(f) in OPENSSL_USELESS_FILES_LIST:
+                continue
+            if os.path.basename(f) in OPENSSL_POSIX_FILES_LIST:
+                posix_and_win_files.append(f)
+                continue
+            if os.path.basename(f) in OPENSSL_WINDOWS_FILES_LIST:
+                posix_and_win_files.append(f)
                 continue
             arch_files_map[arch].append(f)
         arch_def_map[arch] = get_ini_conf_strings(arch_map[arch], lib_ini_name, 'DEF_LIST')
@@ -166,6 +175,12 @@ def gen_makefile_for_lib(lib_ini_name, lib_make_name, vendor_prefix, incd, maked
             if f.endswith('.c'):
                 dir_name = os.path.dirname(f)
                 dir_names.add(dir_name)
+    if lib_make_name.startswith('crypto'):
+        for f in posix_and_win_files:
+            if '/' in f:
+                if f.endswith('.c'):
+                    dir_name = os.path.dirname(f)
+                    dir_names.add(dir_name)
 
     if not os.path.isdir(makedir):
         os.makedirs(makedir)
@@ -292,6 +307,20 @@ def gen_makefile_for_lib(lib_ini_name, lib_make_name, vendor_prefix, incd, maked
                     if d in common_defs:
                         continue
                     print("  '{}',".format(d), file=fh)
+                print("]", file=fh)
+                print("", file=fh)
+
+        if lib_make_name.startswith('crypto'):
+            if OPENSSL_POSIX_FILES_LIST:
+                print("build_list_posix = [", file=fh)
+                for f_name in sorted(OPENSSL_POSIX_FILES_LIST):
+                    print("  '{}',".format(f_name), file=fh)
+                print("]", file=fh)
+                print("", file=fh)
+            if OPENSSL_WINDOWS_FILES_LIST:
+                print("build_list_windows = [", file=fh)
+                for f_name in sorted(OPENSSL_WINDOWS_FILES_LIST):
+                    print("  '{}',".format(f_name), file=fh)
                 print("]", file=fh)
                 print("", file=fh)
 
