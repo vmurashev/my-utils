@@ -38,6 +38,12 @@ def init():
             return
         shutil.rmtree(DIR_PROJECT_ROOT)
 
+    os.makedirs(DIR_OPENSSL_SUBMODULE)
+    subprocess.check_call(['git', 'clone', 'https://github.com/vmurashev/openssl.git', '.'], cwd=DIR_OPENSSL_SUBMODULE)
+    shutil.rmtree(os.path.join(DIR_OPENSSL_SUBMODULE, 'build'))
+    shutil.rmtree(os.path.join(DIR_OPENSSL_SUBMODULE, 'include'))
+    shutil.rmtree(os.path.join(DIR_OPENSSL_SUBMODULE, 'vendor'))
+
     os.makedirs(DIR_OPENSSL_SUBMODULE_VENDOR)
     os.makedirs(OPENSSL_HEADERS_DIR)
     subprocess.check_call(['tar', 'xf', os.path.join(DIR_HERE, 'obj', os.path.basename(OPENSSL_URL)), '--strip-components=1', '-C', DIR_OPENSSL_SUBMODULE_VENDOR])
