@@ -1,8 +1,15 @@
 #!/usr/bin/env python3
 
 import argparse
+import os.path
 
-EXPORTS_DISABLED = ['OPENSSL_Uplink']
+DIR_HERE = os.path.normpath(os.path.abspath(os.path.dirname(__file__)))
+
+with open(os.path.join(DIR_HERE, 'conf.sh'), mode='rt') as conf_sh:
+    exec(compile(conf_sh.read(), os.path.join(DIR_HERE, 'conf.sh'), 'exec'))
+
+EXPORTS_DISABLED = OPENSSL_EXPORTS_DISABLED.split()
+EXPORTS_WINAPI_SPECIFIC = OPENSSL_EXPORTS_CRYPTO_WINAPI_ONLY.split()
 
 
 def load_export_list_from_def_file(lib_name, def_file):
@@ -53,7 +60,8 @@ def gen_export_table_h(lib_name, def_file, def_output, h_output):
         print('', file=fh)
         print("static const char* {}_EXPORT_TABLE[] = {{".format(lib_name.upper()), file=fh)
         for func_name in export_list:
-            print('  "{}",'.format(func_name), file=fh)
+            if func_name not in EXPORTS_WINAPI_SPECIFIC:
+                print('  "{}",'.format(func_name), file=fh)
         print('  NULL', file=fh)
         print("};", file=fh)
 

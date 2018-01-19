@@ -5,6 +5,8 @@ OPENSSL_OPTIONS='shared zlib-dynamic disable-dynamic-engine --api=1.0.0'
 OPENSSL_USELESS_FILES='m_md2.c e_rc5.c rsa_depr.c rand_egd.c ecp_nistputil.c ecp_nistp521.c ecp_nistp256.c ecp_nistp224.c ebcdic.c e_old.c dsa_depr.c dh_depr.c bn_depr.c async_null.c dso_vms.c rand_vms.c threads_none.c'
 OPENSSL_POSIX_FILES='async_posix.c dso_dlfcn.c rand_unix.c threads_pthread.c'
 OPENSSL_WINDOWS_FILES='async_win.c dso_win32.c rand_win.c threads_win.c'
+OPENSSL_EXPORTS_CRYPTO_WINAPI_ONLY='RAND_event RAND_screen'
+OPENSSL_EXPORTS_DISABLED='OPENSSL_Uplink'
 
 MSVS_LANDMARK='VS140COMNTOOLS'
 CURL_FOR_WINDOWS='C:\\Git\\usr\\bin\\curl.exe'

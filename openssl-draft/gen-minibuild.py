@@ -30,6 +30,7 @@ CRYPTO_WELLKNOWN_DEFINES = ['L_ENDIAN', 'OPENSSL_USE_NODELETE', 'NO_WINDOWS_BRAI
 OPENSSL_USELESS_FILES_LIST = OPENSSL_USELESS_FILES.split()
 OPENSSL_POSIX_FILES_LIST = OPENSSL_POSIX_FILES.split()
 OPENSSL_WINDOWS_FILES_LIST = OPENSSL_WINDOWS_FILES.split()
+CRYPTO_EXPORTS_WINAPI_SPECIFIC = OPENSSL_EXPORTS_CRYPTO_WINAPI_ONLY.split()
 
 def init():
     stamp_file = os.path.join(DIR_HERE, 'obj', 'draft-init.stamp')
@@ -217,6 +218,12 @@ def gen_makefile_for_lib(lib_ini_name, lib_make_name, vendor_prefix, incd, maked
 
             print("export_def_file = '{}'".format(os.path.basename(def_file)), file=fh)
             print("", file=fh)
+            if lib_make_name == 'crypto':
+                print("export_winapi_only = [", file=fh)
+                for win_export in CRYPTO_EXPORTS_WINAPI_SPECIFIC:
+                    print("  '{}',".format(win_export), file=fh)
+                print("]", file=fh)
+                print("", file=fh)
 
 
     if is_shared:
