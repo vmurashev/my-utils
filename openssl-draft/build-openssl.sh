@@ -193,12 +193,29 @@ gen_def_files ()
     fi
 }
 
+# $1: ABI
+copy_progs_h ()
+{
+    local ABI=$1
+    local OPENSSL_SRCDIR="$DIR_OBJ/openssl-src-$abi"
+    local FILE_PROGS_H="$OPENSSL_SRCDIR/apps/progs.h"
+    local FILE_PROGS_H_OUTPUT="$DIR_HERE/tweaks/progs.h"
+    rm -f "$FILE_PROGS_H_OUTPUT"
+    cp -T "$FILE_PROGS_H" "$FILE_PROGS_H_OUTPUT"
+}
+
+
+PROGS_H_READY='no'
 GEN_DEF_FILES='no'
 for abi in $(echo $ABI_ALL | tr ',' ' '); do
     build_target_openssl $abi
     copy_config_headers $abi
     if [ "$abi" = "mingw64" ]; then
         GEN_DEF_FILES='yes'
+    fi
+    if [ "$PROGS_H_READY" != "yes" ]; then
+        copy_progs_h $abi
+        PROGS_H_READY='yes'
     fi
 done
 

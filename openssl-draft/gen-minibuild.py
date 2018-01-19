@@ -39,7 +39,7 @@ def init():
         shutil.rmtree(DIR_PROJECT_ROOT)
 
     os.makedirs(DIR_OPENSSL_SUBMODULE)
-    subprocess.check_call(['git', 'clone', 'https://github.com/vmurashev/openssl.git', '.'], cwd=DIR_OPENSSL_SUBMODULE)
+    subprocess.check_call(['git', 'clone', 'https://github.com/minibuild/openssl.git', '.'], cwd=DIR_OPENSSL_SUBMODULE)
     shutil.rmtree(os.path.join(DIR_OPENSSL_SUBMODULE, 'build'))
     shutil.rmtree(os.path.join(DIR_OPENSSL_SUBMODULE, 'include'))
     shutil.rmtree(os.path.join(DIR_OPENSSL_SUBMODULE, 'vendor'))
@@ -52,7 +52,7 @@ def init():
     subprocess.check_call("find . -name '*.h.in' -exec rm -f {} \;", shell=True, cwd=DIR_OPENSSL_SUBMODULE_VENDOR)
     subprocess.check_call("find . -type f -exec chmod ugo-x {} \;", shell=True, cwd=DIR_OPENSSL_SUBMODULE_VENDOR)
     subprocess.check_call("patch -p0 -i {}".format(os.path.join(DIR_HERE, 'tweaks', 'eng_list.c.patch')), shell=True, cwd=DIR_OPENSSL_SUBMODULE_VENDOR)
-    subprocess.check_call(['git', 'clone', 'https://github.com/vmurashev/zlib.git'], cwd=DIR_PROJECT_ROOT)
+    subprocess.check_call(['git', 'clone', 'https://github.com/minibuild/zlib.git'], cwd=DIR_PROJECT_ROOT)
     shutil.copyfile(os.path.join(DIR_HERE, 'shlib_verify_export', 'minibuild.ini'), os.path.join(DIR_PROJECT_ROOT, 'minibuild.ini'))
 
     for twh in os.listdir(os.path.join(DIR_OPENSSL_SUBMODULE_VENDOR, 'include/openssl')):
@@ -64,13 +64,10 @@ def init():
     shutil.rmtree(os.path.join(DIR_OPENSSL_SUBMODULE_VENDOR, 'demos'))
     shutil.rmtree(os.path.join(DIR_OPENSSL_SUBMODULE_VENDOR, 'fuzz'))
 
-    for twh in os.listdir(os.path.join(DIR_HERE, 'tweaks')):
-        # if twh.startswith('opensslconf') and twh.endswith('.h'):
-        if twh == 'opensslconf.h':
-            shutil.copyfile(os.path.join(DIR_HERE, 'tweaks', twh), os.path.join(OPENSSL_HEADERS_DIR, twh))
-
-    shutil.copyfile(os.path.join(DIR_HERE, 'tweaks', 'bn_conf.h'), os.path.join(DIR_OPENSSL_SUBMODULE_VENDOR, 'crypto/include/internal', 'bn_conf.h'))
+    shutil.copyfile(os.path.join(DIR_HERE, 'tweaks', 'opensslconf.h'), os.path.join(OPENSSL_HEADERS_DIR, 'opensslconf.h'))
     shutil.copyfile(os.path.join(DIR_HERE, 'tweaks', 'dso_conf.h'), os.path.join(DIR_OPENSSL_SUBMODULE_VENDOR, 'crypto/include/internal', 'dso_conf.h'))
+    shutil.copyfile(os.path.join(DIR_HERE, 'tweaks', 'bn_conf.h'), os.path.join(DIR_OPENSSL_SUBMODULE_VENDOR, 'crypto/include/internal', 'bn_conf.h'))
+    shutil.copyfile(os.path.join(DIR_HERE, 'tweaks', 'progs.h'), os.path.join(DIR_OPENSSL_SUBMODULE_VENDOR, 'apps', 'progs.h'))
 
     with open(stamp_file, mode='w'):
         pass

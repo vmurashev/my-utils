@@ -22,7 +22,7 @@ extern "C" {
  * OpenSSL was configured with the following options:
  */
 
-#define OPENSSL_MIN_API 0x10100000L
+#define OPENSSL_MIN_API 0x10000000L
 #ifndef OPENSSL_NO_MD2
 # define OPENSSL_NO_MD2
 #endif
@@ -40,9 +40,6 @@ extern "C" {
 #endif
 #ifndef OPENSSL_NO_CRYPTO_MDEBUG_BACKTRACE
 # define OPENSSL_NO_CRYPTO_MDEBUG_BACKTRACE
-#endif
-#ifndef OPENSSL_NO_DEPRECATED
-# define OPENSSL_NO_DEPRECATED
 #endif
 #ifndef OPENSSL_NO_EC_NISTP_64_GCC_128
 # define OPENSSL_NO_EC_NISTP_64_GCC_128

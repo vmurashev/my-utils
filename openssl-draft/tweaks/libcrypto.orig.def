@@ -131,6 +131,7 @@ EXPORTS
     ASN1_STRING_clear_free
     ASN1_STRING_cmp
     ASN1_STRING_copy
+    ASN1_STRING_data
     ASN1_STRING_dup
     ASN1_STRING_free
     ASN1_STRING_get0_data
@@ -295,6 +296,7 @@ EXPORTS
     BIO_ADDR_rawmake
     BIO_ADDR_rawport
     BIO_ADDR_service_string
+    BIO_accept
     BIO_accept_ex
     BIO_asn1_get_prefix
     BIO_asn1_get_suffix
@@ -335,15 +337,19 @@ EXPORTS
     BIO_find_type
     BIO_free
     BIO_free_all
+    BIO_get_accept_socket
     BIO_get_callback
     BIO_get_callback_arg
     BIO_get_data
     BIO_get_ex_data
+    BIO_get_host_ip
     BIO_get_init
     BIO_get_new_index
+    BIO_get_port
     BIO_get_retry_BIO
     BIO_get_retry_reason
     BIO_get_shutdown
+    BIO_gethostbyname
     BIO_gets
     BIO_hex_string
     BIO_indent
@@ -1436,6 +1442,7 @@ EXPORTS
     ERR_print_errors_fp
     ERR_put_error
     ERR_reason_error_string
+    ERR_remove_thread_state
     ERR_set_error_data
     ERR_set_mark
     ERR_unload_strings
@@ -1905,6 +1912,7 @@ EXPORTS
     HMAC_CTX_reset
     HMAC_CTX_set_flags
     HMAC_Final
+    HMAC_Init
     HMAC_Init_ex
     HMAC_Update
     HMAC_size
@@ -2188,6 +2196,7 @@ EXPORTS
     OPENSSL_buf2hexstr
     OPENSSL_cleanse
     OPENSSL_cleanup
+    OPENSSL_config
     OPENSSL_die
     OPENSSL_gmtime
     OPENSSL_gmtime_adj
@@ -2404,6 +2413,7 @@ EXPORTS
     PKCS12_free
     PKCS12_gen_mac
     PKCS12_get0_mac
+    PKCS12_get_attr
     PKCS12_get_attr_gen
     PKCS12_get_friendlyname
     PKCS12_init
@@ -2561,10 +2571,13 @@ EXPORTS
     RAND_OpenSSL
     RAND_add
     RAND_bytes
+    RAND_event
     RAND_file_name
     RAND_get_rand_method
     RAND_load_file
     RAND_poll
+    RAND_pseudo_bytes
+    RAND_screen
     RAND_seed
     RAND_set_rand_engine
     RAND_set_rand_method
@@ -2764,6 +2777,7 @@ EXPORTS
     SRP_Calc_x
     SRP_VBASE_free
     SRP_VBASE_get1_by_user
+    SRP_VBASE_get_by_user
     SRP_VBASE_init
     SRP_VBASE_new
     SRP_Verify_A_mod_N
@@ -3105,7 +3119,9 @@ EXPORTS
     X509_CRL_get_ext_count
     X509_CRL_get_ext_d2i
     X509_CRL_get_issuer
+    X509_CRL_get_lastUpdate
     X509_CRL_get_meth_data
+    X509_CRL_get_nextUpdate
     X509_CRL_get_signature_nid
     X509_CRL_get_version
     X509_CRL_http_nbio
