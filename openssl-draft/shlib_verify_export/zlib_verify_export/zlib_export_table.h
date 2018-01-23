@@ -127,5 +127,12 @@ static const char* ZLIB_EXPORT_TABLE[] = {
   "deflateGetDictionary",
   "adler32_z",
   "crc32_z",
+#ifdef _WIN32
+  "fill_win32_filefunc",
+  "fill_win32_filefunc64",
+  "fill_win32_filefunc64A",
+  "fill_win32_filefunc64W",
+  "gzopen_w",
+#endif
   NULL
 };

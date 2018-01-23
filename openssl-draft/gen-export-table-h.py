@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+from __future__ import print_function
+import sys
 import argparse
 import os.path
 
@@ -60,24 +62,40 @@ def gen_export_table_h(lib_name, def_file, def_output, h_output):
         print('', file=fh)
         print("static const char* {}_EXPORT_TABLE[] = {{".format(lib_name.upper()), file=fh)
         for func_name in export_list:
-            if func_name not in EXPORTS_WINAPI_SPECIFIC:
-                print('  "{}",'.format(func_name), file=fh)
+            winapi_wrap = False
+            if func_name in EXPORTS_WINAPI_SPECIFIC:
+                winapi_wrap = True
+            if winapi_wrap:
+                print('#ifdef _WIN32', file=fh)
+            print('  "{}",'.format(func_name), file=fh)
+            if winapi_wrap:
+                print('#endif', file=fh)
         print('  NULL', file=fh)
         print("};", file=fh)
 
-    with open(def_output, mode='wt') as fh:
-        print('LIBRARY {}'.format(lib_name), file=fh)
-        print('', file=fh)
-        print('EXPORTS', file=fh)
-        for line in export_lines:
-            print(line, file=fh)
+    if def_output is not None:
+        with open(def_output, mode='wt') as fh:
+            print('LIBRARY {}'.format(lib_name), file=fh)
+            print('', file=fh)
+            print('EXPORTS', file=fh)
+            for line in export_lines:
+                print(line, file=fh)
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--lib-name', nargs=1, choices=['crypto', 'ssl'], required=True)
-    parser.add_argument('--def-file', nargs=1, required=True)
-    parser.add_argument('--def-output', nargs=1, required=True)
-    parser.add_argument('--h-output', nargs=1, required=True)
-    args = parser.parse_args()
-    gen_export_table_h(args.lib_name[0], args.def_file[0], args.def_output[0], args.h_output[0])
+    if len(sys.argv) < 2:
+        h_crypto = os.path.normpath(os.path.join(DIR_HERE, "shlib_verify_export/crypto_export_table.h"))
+        def_crypto = os.path.normpath(os.path.join(DIR_HERE, "draft/openssl/build/crypto/libcrypto.def"))
+        h_ssl = os.path.normpath(os.path.join(DIR_HERE, "shlib_verify_export/ssl_export_table.h"))
+        def_ssl = os.path.normpath(os.path.join(DIR_HERE, "draft/openssl/build/ssl/libssl.def"))
+        gen_export_table_h('crypto', def_crypto, None, h_crypto)
+        gen_export_table_h('ssl', def_ssl, None, h_ssl)
+
+    else:
+        parser = argparse.ArgumentParser()
+        parser.add_argument('--lib-name', nargs=1, choices=['crypto', 'ssl'], required=True)
+        parser.add_argument('--def-file', nargs=1, required=True)
+        parser.add_argument('--def-output', nargs=1, required=True)
+        parser.add_argument('--h-output', nargs=1, required=True)
+        args = parser.parse_args()
+        gen_export_table_h(args.lib_name[0], args.def_file[0], args.def_output[0], args.h_output[0])

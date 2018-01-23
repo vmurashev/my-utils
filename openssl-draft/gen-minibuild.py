@@ -1,7 +1,11 @@
 #!/usr/bin/env python3
 
+from __future__ import print_function
 import sys
-import configparser
+if sys.version_info.major < 3:
+    import ConfigParser as configparser
+else:
+    import configparser
 import os
 import os.path
 import shutil
@@ -13,7 +17,7 @@ with open(os.path.join(DIR_HERE, 'conf.sh'), mode='rt') as conf_sh:
     exec(compile(conf_sh.read(), os.path.join(DIR_HERE, 'conf.sh'), 'exec'))
 
 DIR_PROJECT_ROOT = os.path.normpath(os.path.join(DIR_HERE, 'draft'))
-DIR_OPENSSL_SUBMODULE = os.path.join(DIR_PROJECT_ROOT, '0')
+DIR_OPENSSL_SUBMODULE = os.path.join(DIR_PROJECT_ROOT, 'openssl')
 DIR_OPENSSL_SUBMODULE_VENDOR = os.path.join(DIR_OPENSSL_SUBMODULE, 'vendor')
 
 OPENSSL_HEADERS_DIR = os.path.join(DIR_OPENSSL_SUBMODULE, 'include/openssl')
@@ -31,6 +35,24 @@ OPENSSL_USELESS_FILES_LIST = OPENSSL_USELESS_FILES.split()
 OPENSSL_POSIX_FILES_LIST = OPENSSL_POSIX_FILES.split()
 OPENSSL_WINDOWS_FILES_LIST = OPENSSL_WINDOWS_FILES.split()
 CRYPTO_EXPORTS_WINAPI_SPECIFIC = OPENSSL_EXPORTS_CRYPTO_WINAPI_ONLY.split()
+
+def git_clone_openssl():
+    stamp_file = os.path.join(DIR_HERE, 'obj', 'draft-init.stamp')
+    if os.path.isdir(DIR_PROJECT_ROOT):
+        if os.path.isfile(stamp_file):
+            return
+        shutil.rmtree(DIR_PROJECT_ROOT)
+
+    os.makedirs(DIR_OPENSSL_SUBMODULE)
+    subprocess.check_call(['git', 'clone', 'https://github.com/minibuild/openssl.git', '.'], cwd=DIR_OPENSSL_SUBMODULE)
+
+    subprocess.check_call(['git', 'clone', 'https://github.com/minibuild/zlib.git'], cwd=DIR_PROJECT_ROOT)
+
+    shutil.copyfile(os.path.join(DIR_HERE, 'shlib_verify_export', 'minibuild.ini'), os.path.join(DIR_PROJECT_ROOT, 'minibuild.ini'))
+
+    with open(stamp_file, mode='w'):
+        pass
+
 
 def init():
     stamp_file = os.path.join(DIR_HERE, 'obj', 'draft-init.stamp')
@@ -523,5 +545,12 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    minicmn_lib_git_landmark = os.path.normpath(os.path.join(DIR_HERE, "shlib_verify_export/minicmn/.git"))
+    if not os.path.isdir(minicmn_lib_git_landmark):
+        subprocess.check_call(['git', 'clone', 'https://github.com/vmurashev/minicmn.git'], cwd=os.path.normpath(os.path.join(DIR_HERE, "shlib_verify_export")))
+
+    if sys.platform == 'win32':
+        git_clone_openssl()
+    else:
+        main()
     print('Generated!')

@@ -2,17 +2,16 @@
 #include "ssl_export_table.h"
 #include <stdio.h>
 #include <string.h>
-#include <dlfcn.h>
-
-static char NULL_PTR_STR[] = "NULL";
+#include <minicmn/shlib.h>
 
 int main(int argc, char** argv)
 {
     int retcode = 126;
+    minicmn_Error* err = NULL;
     const char* shlib_crypto_path = NULL;
     const char* shlib_ssl_path = NULL;
-    void* shlib_crypto = NULL;
-    void* shlib_ssl = NULL;
+    minicmn_SharedLibrary* shlib_crypto = NULL;
+    minicmn_SharedLibrary* shlib_ssl = NULL;
     if (argc >= 2)
     {
         shlib_crypto_path = argv[1];
@@ -43,26 +42,18 @@ int main(int argc, char** argv)
 
     if (verify_crypto)
     {
-        shlib_crypto = dlopen(shlib_crypto_path, RTLD_LAZY);
-        if (shlib_crypto == NULL)
+        if (minicmn_LoadLibrary(shlib_crypto_path, &shlib_crypto, &err) != 0)
         {
-            const char* lasterr = dlerror();
-            if (lasterr == NULL)
-                 lasterr = NULL_PTR_STR;
-            printf("ERROR: cannot load library: '%s', dlerror: %s\n", shlib_crypto_path, lasterr);
+            printf("ERROR: cannot load library: '%s'\n", shlib_crypto_path);
             goto exit;
         }
     }
 
     if (verify_ssl)
     {
-        shlib_ssl = dlopen(shlib_ssl_path, RTLD_LAZY);
-        if (shlib_ssl == NULL)
+        if (minicmn_LoadLibrary(shlib_ssl_path, &shlib_ssl, &err) != 0)
         {
-            const char* lasterr = dlerror();
-            if (lasterr == NULL)
-                 lasterr = NULL_PTR_STR;
-            printf("ERROR: cannot load library: '%s', dlerror: %s\n", shlib_ssl_path, lasterr);
+            printf("ERROR: cannot load library: '%s'\n", shlib_ssl_path);
             goto exit;
         }
     }
@@ -81,14 +72,11 @@ int main(int argc, char** argv)
             if (sym == NULL)
                 break;
 
-            void* code = dlsym(shlib_crypto, sym);
+            void* code = minicmn_GetProcAddress(shlib_crypto, sym);
             if (code == NULL)
             {
                 bad_count += 1;
-                const char* lasterr = dlerror();
-                if (lasterr == NULL)
-                     lasterr = NULL_PTR_STR;
-                printf("    BAD SYMBOL: '%s', dlerror: %s\n", sym, lasterr);
+                printf("    BAD SYMBOL: '%s'\n", sym);
                 total_failures_count += 1;
             }
             else
@@ -111,14 +99,11 @@ int main(int argc, char** argv)
             if (sym == NULL)
                 break;
 
-            void* code = dlsym(shlib_ssl, sym);
+            void* code = minicmn_GetProcAddress(shlib_ssl, sym);
             if (code == NULL)
             {
                 bad_count += 1;
-                const char* lasterr = dlerror();
-                if (lasterr == NULL)
-                     lasterr = NULL_PTR_STR;
-                printf("    BAD SYMBOL: '%s', dlerror: %s\n", sym, lasterr);
+                printf("    BAD SYMBOL: '%s'\n", sym);
                 total_failures_count += 1;
             }
             else
@@ -129,17 +114,18 @@ int main(int argc, char** argv)
         printf("SYMBOLS: good / bad / total --- %d / %d / %d\n", good_count, bad_count, idx);
     }
 
-    if (total_failures_count == 0)
+    if ((err == NULL) && (total_failures_count == 0))
         retcode = 0;
     else
         retcode = 1;
 
 exit:
-  if (shlib_crypto != NULL)
-    dlclose(shlib_crypto);
-
-  if (shlib_ssl != NULL)
-    dlclose(shlib_ssl);
-
-  return retcode;
+    if (err != NULL)
+    {
+        printf("ERROR: %s\n", err->ErrorText);
+        minicmn_DataFree(err);
+    }
+    minicmn_DataFree(shlib_crypto);
+    minicmn_DataFree(shlib_ssl);
+    return retcode;
 }

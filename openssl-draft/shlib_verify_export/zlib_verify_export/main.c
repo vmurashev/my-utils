@@ -1,15 +1,15 @@
 #include "zlib_export_table.h"
 #include <stdio.h>
 #include <string.h>
-#include <dlfcn.h>
+#include <minicmn/shlib.h>
 
-static char NULL_PTR_STR[] = "NULL";
 
 int main(int argc, char** argv)
 {
     int retcode = 126;
     const char* shlib_zlib_path = NULL;
-    void* shlib_zlib = NULL;
+    minicmn_SharedLibrary* shlib_zlib = NULL;
+    minicmn_Error* err = NULL;
     if (argc >= 2)
     {
         shlib_zlib_path = argv[1];
@@ -20,13 +20,9 @@ int main(int argc, char** argv)
         goto exit;
     }
 
-    shlib_zlib = dlopen(shlib_zlib_path, RTLD_LAZY);
-    if (shlib_zlib == NULL)
+    if (minicmn_LoadLibrary(shlib_zlib_path, &shlib_zlib, &err) != 0)
     {
-        const char* lasterr = dlerror();
-        if (lasterr == NULL)
-             lasterr = NULL_PTR_STR;
-        printf("ERROR: cannot load library: '%s', dlerror: %s\n", shlib_zlib_path, lasterr);
+        printf("ERROR: cannot load library: '%s'\n", shlib_zlib_path);
         goto exit;
     }
 
@@ -43,15 +39,11 @@ int main(int argc, char** argv)
             const char* sym = ZLIB_EXPORT_TABLE[idx];
             if (sym == NULL)
                 break;
-
-            void* code = dlsym(shlib_zlib, sym);
+            void* code = minicmn_GetProcAddress(shlib_zlib, sym);
             if (code == NULL)
             {
                 bad_count += 1;
-                const char* lasterr = dlerror();
-                if (lasterr == NULL)
-                     lasterr = NULL_PTR_STR;
-                printf("    BAD SYMBOL: '%s', dlerror: %s\n", sym, lasterr);
+                printf("    BAD SYMBOL: '%s'\n", sym);
                 total_failures_count += 1;
             }
             else
@@ -68,8 +60,11 @@ int main(int argc, char** argv)
         retcode = 1;
 
 exit:
-  if (shlib_zlib != NULL)
-    dlclose(shlib_zlib);
-
-  return retcode;
+    if (err != NULL)
+    {
+        printf("ERROR: %s\n", err->ErrorText);
+        minicmn_DataFree(err);
+    }
+    minicmn_DataFree(shlib_zlib);
+    return retcode;
 }
