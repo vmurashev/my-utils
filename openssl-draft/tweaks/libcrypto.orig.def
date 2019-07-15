@@ -1,13 +1,29 @@
 ;
-; Definition file for the DLL version of the crypto library from OpenSSL
+; Definition file for the DLL version of the libcrypto-1_1-x64 library from OpenSSL
 ;
 
-LIBRARY         crypto32	
+LIBRARY         libcrypto-1_1-x64	
 
 EXPORTS
     ACCESS_DESCRIPTION_free
     ACCESS_DESCRIPTION_it
     ACCESS_DESCRIPTION_new
+    ADMISSIONS_free
+    ADMISSIONS_get0_admissionAuthority
+    ADMISSIONS_get0_namingAuthority
+    ADMISSIONS_get0_professionInfos
+    ADMISSIONS_it
+    ADMISSIONS_new
+    ADMISSIONS_set0_admissionAuthority
+    ADMISSIONS_set0_namingAuthority
+    ADMISSIONS_set0_professionInfos
+    ADMISSION_SYNTAX_free
+    ADMISSION_SYNTAX_get0_admissionAuthority
+    ADMISSION_SYNTAX_get0_contentsOfAdmissions
+    ADMISSION_SYNTAX_it
+    ADMISSION_SYNTAX_new
+    ADMISSION_SYNTAX_set0_admissionAuthority
+    ADMISSION_SYNTAX_set0_contentsOfAdmissions
     AES_bi_ige_encrypt
     AES_cbc_encrypt
     AES_cfb128_encrypt
@@ -82,6 +98,8 @@ EXPORTS
     ASN1_INTEGER_set_int64
     ASN1_INTEGER_set_uint64
     ASN1_INTEGER_to_BN
+    ASN1_ITEM_get
+    ASN1_ITEM_lookup
     ASN1_NULL_free
     ASN1_NULL_it
     ASN1_NULL_new
@@ -156,14 +174,19 @@ EXPORTS
     ASN1_TBOOLEAN_it
     ASN1_TIME_adj
     ASN1_TIME_check
+    ASN1_TIME_cmp_time_t
+    ASN1_TIME_compare
     ASN1_TIME_diff
     ASN1_TIME_free
     ASN1_TIME_it
     ASN1_TIME_new
+    ASN1_TIME_normalize
     ASN1_TIME_print
     ASN1_TIME_set
     ASN1_TIME_set_string
+    ASN1_TIME_set_string_X509
     ASN1_TIME_to_generalizedtime
+    ASN1_TIME_to_tm
     ASN1_TYPE_cmp
     ASN1_TYPE_free
     ASN1_TYPE_get
@@ -302,6 +325,7 @@ EXPORTS
     BIO_asn1_get_suffix
     BIO_asn1_set_prefix
     BIO_asn1_set_suffix
+    BIO_bind
     BIO_callback_ctrl
     BIO_clear_flags
     BIO_closesocket
@@ -340,6 +364,7 @@ EXPORTS
     BIO_get_accept_socket
     BIO_get_callback
     BIO_get_callback_arg
+    BIO_get_callback_ex
     BIO_get_data
     BIO_get_ex_data
     BIO_get_host_ip
@@ -356,6 +381,7 @@ EXPORTS
     BIO_int_ctrl
     BIO_listen
     BIO_lookup
+    BIO_lookup_ex
     BIO_meth_free
     BIO_meth_get_callback_ctrl
     BIO_meth_get_create
@@ -364,7 +390,9 @@ EXPORTS
     BIO_meth_get_gets
     BIO_meth_get_puts
     BIO_meth_get_read
+    BIO_meth_get_read_ex
     BIO_meth_get_write
+    BIO_meth_get_write_ex
     BIO_meth_new
     BIO_meth_set_callback_ctrl
     BIO_meth_set_create
@@ -373,7 +401,9 @@ EXPORTS
     BIO_meth_set_gets
     BIO_meth_set_puts
     BIO_meth_set_read
+    BIO_meth_set_read_ex
     BIO_meth_set_write
+    BIO_meth_set_write_ex
     BIO_method_name
     BIO_method_type
     BIO_new
@@ -403,18 +433,21 @@ EXPORTS
     BIO_push
     BIO_puts
     BIO_read
+    BIO_read_ex
     BIO_s_accept
     BIO_s_bio
     BIO_s_connect
     BIO_s_datagram
     BIO_s_fd
     BIO_s_file
+    BIO_s_log
     BIO_s_mem
     BIO_s_null
     BIO_s_secmem
     BIO_s_socket
     BIO_set_callback
     BIO_set_callback_arg
+    BIO_set_callback_ex
     BIO_set_cipher
     BIO_set_data
     BIO_set_ex_data
@@ -439,6 +472,7 @@ EXPORTS
     BIO_vprintf
     BIO_vsnprintf
     BIO_write
+    BIO_write_ex
     BN_BLINDING_convert
     BN_BLINDING_convert_ex
     BN_BLINDING_create_param
@@ -591,6 +625,8 @@ EXPORTS
     BN_options
     BN_print
     BN_print_fp
+    BN_priv_rand
+    BN_priv_rand_range
     BN_pseudo_rand
     BN_pseudo_rand_range
     BN_rand
@@ -956,8 +992,11 @@ EXPORTS
     DH_OpenSSL
     DH_bits
     DH_check
+    DH_check_ex
     DH_check_params
+    DH_check_params_ex
     DH_check_pub_key
+    DH_check_pub_key_ex
     DH_clear_flags
     DH_compute_key
     DH_compute_key_padded
@@ -965,14 +1004,20 @@ EXPORTS
     DH_generate_key
     DH_generate_parameters_ex
     DH_get0_engine
+    DH_get0_g
     DH_get0_key
+    DH_get0_p
     DH_get0_pqg
+    DH_get0_priv_key
+    DH_get0_pub_key
+    DH_get0_q
     DH_get_1024_160
     DH_get_2048_224
     DH_get_2048_256
     DH_get_default_method
     DH_get_ex_data
     DH_get_length
+    DH_get_nid
     DH_meth_dup
     DH_meth_free
     DH_meth_get0_app_data
@@ -995,6 +1040,7 @@ EXPORTS
     DH_meth_set_generate_params
     DH_meth_set_init
     DH_new
+    DH_new_by_nid
     DH_new_method
     DH_security_bits
     DH_set0_key
@@ -1038,8 +1084,13 @@ EXPORTS
     DSA_generate_key
     DSA_generate_parameters_ex
     DSA_get0_engine
+    DSA_get0_g
     DSA_get0_key
+    DSA_get0_p
     DSA_get0_pqg
+    DSA_get0_priv_key
+    DSA_get0_pub_key
+    DSA_get0_q
     DSA_get_default_method
     DSA_get_ex_data
     DSA_get_method
@@ -1109,6 +1160,8 @@ EXPORTS
     ECDH_compute_key
     ECDSA_SIG_free
     ECDSA_SIG_get0
+    ECDSA_SIG_get0_r
+    ECDSA_SIG_get0_s
     ECDSA_SIG_new
     ECDSA_SIG_set0
     ECDSA_do_sign
@@ -1147,6 +1200,7 @@ EXPORTS
     EC_GROUP_get_asn1_flag
     EC_GROUP_get_basis_type
     EC_GROUP_get_cofactor
+    EC_GROUP_get_curve
     EC_GROUP_get_curve_GF2m
     EC_GROUP_get_curve_GFp
     EC_GROUP_get_curve_name
@@ -1170,6 +1224,7 @@ EXPORTS
     EC_GROUP_order_bits
     EC_GROUP_precompute_mult
     EC_GROUP_set_asn1_flag
+    EC_GROUP_set_curve
     EC_GROUP_set_curve_GF2m
     EC_GROUP_set_curve_GFp
     EC_GROUP_set_curve_name
@@ -1196,6 +1251,7 @@ EXPORTS
     EC_KEY_dup
     EC_KEY_free
     EC_KEY_generate_key
+    EC_KEY_get0_engine
     EC_KEY_get0_group
     EC_KEY_get0_private_key
     EC_KEY_get0_public_key
@@ -1238,6 +1294,7 @@ EXPORTS
     EC_POINT_dup
     EC_POINT_free
     EC_POINT_get_Jprojective_coordinates_GFp
+    EC_POINT_get_affine_coordinates
     EC_POINT_get_affine_coordinates_GF2m
     EC_POINT_get_affine_coordinates_GFp
     EC_POINT_hex2point
@@ -1254,8 +1311,10 @@ EXPORTS
     EC_POINT_point2hex
     EC_POINT_point2oct
     EC_POINT_set_Jprojective_coordinates_GFp
+    EC_POINT_set_affine_coordinates
     EC_POINT_set_affine_coordinates_GF2m
     EC_POINT_set_affine_coordinates_GFp
+    EC_POINT_set_compressed_coordinates
     EC_POINT_set_compressed_coordinates_GF2m
     EC_POINT_set_compressed_coordinates_GFp
     EC_POINT_set_to_infinity
@@ -1391,6 +1450,7 @@ EXPORTS
     ERR_add_error_data
     ERR_add_error_vdata
     ERR_clear_error
+    ERR_clear_last_mark
     ERR_error_string
     ERR_error_string_n
     ERR_func_error_string
@@ -1420,6 +1480,7 @@ EXPORTS
     ERR_load_KDF_strings
     ERR_load_OBJ_strings
     ERR_load_OCSP_strings
+    ERR_load_OSSL_STORE_strings
     ERR_load_PEM_strings
     ERR_load_PKCS12_strings
     ERR_load_PKCS7_strings
@@ -1430,6 +1491,7 @@ EXPORTS
     ERR_load_X509V3_strings
     ERR_load_X509_strings
     ERR_load_strings
+    ERR_load_strings_const
     ERR_peek_error
     ERR_peek_error_line
     ERR_peek_error_line_data
@@ -1446,12 +1508,18 @@ EXPORTS
     ERR_set_error_data
     ERR_set_mark
     ERR_unload_strings
+    ESS_CERT_ID_V2_dup
+    ESS_CERT_ID_V2_free
+    ESS_CERT_ID_V2_new
     ESS_CERT_ID_dup
     ESS_CERT_ID_free
     ESS_CERT_ID_new
     ESS_ISSUER_SERIAL_dup
     ESS_ISSUER_SERIAL_free
     ESS_ISSUER_SERIAL_new
+    ESS_SIGNING_CERT_V2_dup
+    ESS_SIGNING_CERT_V2_free
+    ESS_SIGNING_CERT_V2_new
     ESS_SIGNING_CERT_dup
     ESS_SIGNING_CERT_free
     ESS_SIGNING_CERT_new
@@ -1529,15 +1597,18 @@ EXPORTS
     EVP_DecryptInit
     EVP_DecryptInit_ex
     EVP_DecryptUpdate
+    EVP_DigestFinalXOF
     EVP_DigestFinal
     EVP_DigestFinal_ex
     EVP_DigestInit
     EVP_DigestInit_ex
     EVP_DigestSignFinal
     EVP_DigestSignInit
+    EVP_DigestSign
     EVP_DigestUpdate
     EVP_DigestVerifyFinal
     EVP_DigestVerifyInit
+    EVP_DigestVerify
     EVP_Digest
     EVP_ENCODE_CTX_copy
     EVP_ENCODE_CTX_free
@@ -1563,6 +1634,7 @@ EXPORTS
     EVP_MD_CTX_pkey_ctx
     EVP_MD_CTX_reset
     EVP_MD_CTX_set_flags
+    EVP_MD_CTX_set_pkey_ctx
     EVP_MD_CTX_set_update_fn
     EVP_MD_CTX_test_flags
     EVP_MD_CTX_update_fn
@@ -1609,6 +1681,7 @@ EXPORTS
     EVP_PKEY2PKCS8
     EVP_PKEY_CTX_ctrl
     EVP_PKEY_CTX_ctrl_str
+    EVP_PKEY_CTX_ctrl_uint64
     EVP_PKEY_CTX_dup
     EVP_PKEY_CTX_free
     EVP_PKEY_CTX_get0_peerkey
@@ -1619,6 +1692,7 @@ EXPORTS
     EVP_PKEY_CTX_get_keygen_info
     EVP_PKEY_CTX_get_operation
     EVP_PKEY_CTX_hex2ctrl
+    EVP_PKEY_CTX_md
     EVP_PKEY_CTX_new
     EVP_PKEY_CTX_new_id
     EVP_PKEY_CTX_set0_keygen_info
@@ -1640,16 +1714,25 @@ EXPORTS
     EVP_PKEY_asn1_get0_info
     EVP_PKEY_asn1_get_count
     EVP_PKEY_asn1_new
+    EVP_PKEY_asn1_set_check
     EVP_PKEY_asn1_set_ctrl
     EVP_PKEY_asn1_set_free
+    EVP_PKEY_asn1_set_get_priv_key
+    EVP_PKEY_asn1_set_get_pub_key
     EVP_PKEY_asn1_set_item
     EVP_PKEY_asn1_set_param
+    EVP_PKEY_asn1_set_param_check
     EVP_PKEY_asn1_set_private
     EVP_PKEY_asn1_set_public
+    EVP_PKEY_asn1_set_public_check
     EVP_PKEY_asn1_set_security_bits
+    EVP_PKEY_asn1_set_set_priv_key
+    EVP_PKEY_asn1_set_set_pub_key
+    EVP_PKEY_asn1_set_siginf
     EVP_PKEY_assign
     EVP_PKEY_base_id
     EVP_PKEY_bits
+    EVP_PKEY_check
     EVP_PKEY_cmp
     EVP_PKEY_cmp_parameters
     EVP_PKEY_copy_parameters
@@ -1670,7 +1753,10 @@ EXPORTS
     EVP_PKEY_get0_EC_KEY
     EVP_PKEY_get0_RSA
     EVP_PKEY_get0_asn1
+    EVP_PKEY_get0_engine
     EVP_PKEY_get0_hmac
+    EVP_PKEY_get0_poly1305
+    EVP_PKEY_get0_siphash
     EVP_PKEY_get1_DH
     EVP_PKEY_get1_DSA
     EVP_PKEY_get1_EC_KEY
@@ -1681,6 +1767,8 @@ EXPORTS
     EVP_PKEY_get_attr_by_OBJ
     EVP_PKEY_get_attr_count
     EVP_PKEY_get_default_digest_nid
+    EVP_PKEY_get_raw_private_key
+    EVP_PKEY_get_raw_public_key
     EVP_PKEY_id
     EVP_PKEY_keygen
     EVP_PKEY_keygen_init
@@ -1688,31 +1776,42 @@ EXPORTS
     EVP_PKEY_meth_copy
     EVP_PKEY_meth_find
     EVP_PKEY_meth_free
+    EVP_PKEY_meth_get0
     EVP_PKEY_meth_get0_info
+    EVP_PKEY_meth_get_check
     EVP_PKEY_meth_get_cleanup
     EVP_PKEY_meth_get_copy
+    EVP_PKEY_meth_get_count
     EVP_PKEY_meth_get_ctrl
     EVP_PKEY_meth_get_decrypt
     EVP_PKEY_meth_get_derive
+    EVP_PKEY_meth_get_digest_custom
     EVP_PKEY_meth_get_encrypt
     EVP_PKEY_meth_get_init
     EVP_PKEY_meth_get_keygen
+    EVP_PKEY_meth_get_param_check
     EVP_PKEY_meth_get_paramgen
+    EVP_PKEY_meth_get_public_check
     EVP_PKEY_meth_get_sign
     EVP_PKEY_meth_get_signctx
     EVP_PKEY_meth_get_verify
     EVP_PKEY_meth_get_verify_recover
     EVP_PKEY_meth_get_verifyctx
     EVP_PKEY_meth_new
+    EVP_PKEY_meth_remove
+    EVP_PKEY_meth_set_check
     EVP_PKEY_meth_set_cleanup
     EVP_PKEY_meth_set_copy
     EVP_PKEY_meth_set_ctrl
     EVP_PKEY_meth_set_decrypt
     EVP_PKEY_meth_set_derive
+    EVP_PKEY_meth_set_digest_custom
     EVP_PKEY_meth_set_encrypt
     EVP_PKEY_meth_set_init
     EVP_PKEY_meth_set_keygen
+    EVP_PKEY_meth_set_param_check
     EVP_PKEY_meth_set_paramgen
+    EVP_PKEY_meth_set_public_check
     EVP_PKEY_meth_set_sign
     EVP_PKEY_meth_set_signctx
     EVP_PKEY_meth_set_verify
@@ -1720,12 +1819,17 @@ EXPORTS
     EVP_PKEY_meth_set_verifyctx
     EVP_PKEY_missing_parameters
     EVP_PKEY_new
+    EVP_PKEY_new_CMAC_key
     EVP_PKEY_new_mac_key
+    EVP_PKEY_new_raw_private_key
+    EVP_PKEY_new_raw_public_key
+    EVP_PKEY_param_check
     EVP_PKEY_paramgen
     EVP_PKEY_paramgen_init
     EVP_PKEY_print_params
     EVP_PKEY_print_private
     EVP_PKEY_print_public
+    EVP_PKEY_public_check
     EVP_PKEY_save_parameters
     EVP_PKEY_security_bits
     EVP_PKEY_set1_DH
@@ -1734,6 +1838,7 @@ EXPORTS
     EVP_PKEY_set1_RSA
     EVP_PKEY_set1_engine
     EVP_PKEY_set1_tls_encodedpoint
+    EVP_PKEY_set_alias_type
     EVP_PKEY_set_type
     EVP_PKEY_set_type_str
     EVP_PKEY_sign
@@ -1794,6 +1899,33 @@ EXPORTS
     EVP_aes_256_wrap
     EVP_aes_256_wrap_pad
     EVP_aes_256_xts
+    EVP_aria_128_cbc
+    EVP_aria_128_ccm
+    EVP_aria_128_cfb128
+    EVP_aria_128_cfb1
+    EVP_aria_128_cfb8
+    EVP_aria_128_ctr
+    EVP_aria_128_ecb
+    EVP_aria_128_gcm
+    EVP_aria_128_ofb
+    EVP_aria_192_cbc
+    EVP_aria_192_ccm
+    EVP_aria_192_cfb128
+    EVP_aria_192_cfb1
+    EVP_aria_192_cfb8
+    EVP_aria_192_ctr
+    EVP_aria_192_ecb
+    EVP_aria_192_gcm
+    EVP_aria_192_ofb
+    EVP_aria_256_cbc
+    EVP_aria_256_ccm
+    EVP_aria_256_cfb128
+    EVP_aria_256_cfb1
+    EVP_aria_256_cfb8
+    EVP_aria_256_ctr
+    EVP_aria_256_ecb
+    EVP_aria_256_gcm
+    EVP_aria_256_ofb
     EVP_bf_cbc
     EVP_bf_cfb64
     EVP_bf_ecb
@@ -1881,7 +2013,21 @@ EXPORTS
     EVP_sha224
     EVP_sha256
     EVP_sha384
+    EVP_sha3_224
+    EVP_sha3_256
+    EVP_sha3_384
+    EVP_sha3_512
     EVP_sha512
+    EVP_sha512_224
+    EVP_sha512_256
+    EVP_shake128
+    EVP_shake256
+    EVP_sm3
+    EVP_sm4_cbc
+    EVP_sm4_cfb128
+    EVP_sm4_ctr
+    EVP_sm4_ecb
+    EVP_sm4_ofb
     EVP_whirlpool
     EXTENDED_KEY_USAGE_free
     EXTENDED_KEY_USAGE_it
@@ -1961,6 +2107,15 @@ EXPORTS
     NAME_CONSTRAINTS_free
     NAME_CONSTRAINTS_it
     NAME_CONSTRAINTS_new
+    NAMING_AUTHORITY_free
+    NAMING_AUTHORITY_get0_authorityId
+    NAMING_AUTHORITY_get0_authorityText
+    NAMING_AUTHORITY_get0_authorityURL
+    NAMING_AUTHORITY_it
+    NAMING_AUTHORITY_new
+    NAMING_AUTHORITY_set0_authorityId
+    NAMING_AUTHORITY_set0_authorityText
+    NAMING_AUTHORITY_set0_authorityURL
     NCONF_WIN32
     NCONF_default
     NCONF_dump_bio
@@ -2127,6 +2282,7 @@ EXPORTS
     OCSP_basic_add1_nonce
     OCSP_basic_add1_status
     OCSP_basic_sign
+    OCSP_basic_sign_ctx
     OCSP_basic_verify
     OCSP_cert_id_new
     OCSP_cert_status_str
@@ -2157,7 +2313,11 @@ EXPORTS
     OCSP_resp_get0_certs
     OCSP_resp_get0_id
     OCSP_resp_get0_produced_at
+    OCSP_resp_get0_respdata
     OCSP_resp_get0_signature
+    OCSP_resp_get0_signer
+    OCSP_resp_get0_tbs_sigalg
+    OCSP_resp_get1_id
     OCSP_response_create
     OCSP_response_get1_basic
     OCSP_response_status
@@ -2173,6 +2333,8 @@ EXPORTS
     OPENSSL_INIT_free
     OPENSSL_INIT_new
     OPENSSL_INIT_set_config_appname
+    OPENSSL_INIT_set_config_file_flags
+    OPENSSL_INIT_set_config_filename
     OPENSSL_LH_delete
     OPENSSL_LH_doall
     OPENSSL_LH_doall_arg
@@ -2220,10 +2382,12 @@ EXPORTS
     OPENSSL_sk_is_sorted
     OPENSSL_sk_new
     OPENSSL_sk_new_null
+    OPENSSL_sk_new_reserve
     OPENSSL_sk_num
     OPENSSL_sk_pop
     OPENSSL_sk_pop_free
     OPENSSL_sk_push
+    OPENSSL_sk_reserve
     OPENSSL_sk_set
     OPENSSL_sk_set_cmp_func
     OPENSSL_sk_shift
@@ -2238,6 +2402,63 @@ EXPORTS
     OPENSSL_uni2asc
     OPENSSL_uni2utf8
     OPENSSL_utf82uni
+    OSSL_STORE_INFO_free
+    OSSL_STORE_INFO_get0_CERT
+    OSSL_STORE_INFO_get0_CRL
+    OSSL_STORE_INFO_get0_NAME
+    OSSL_STORE_INFO_get0_NAME_description
+    OSSL_STORE_INFO_get0_PARAMS
+    OSSL_STORE_INFO_get0_PKEY
+    OSSL_STORE_INFO_get1_CERT
+    OSSL_STORE_INFO_get1_CRL
+    OSSL_STORE_INFO_get1_NAME
+    OSSL_STORE_INFO_get1_NAME_description
+    OSSL_STORE_INFO_get1_PARAMS
+    OSSL_STORE_INFO_get1_PKEY
+    OSSL_STORE_INFO_get_type
+    OSSL_STORE_INFO_new_CERT
+    OSSL_STORE_INFO_new_CRL
+    OSSL_STORE_INFO_new_NAME
+    OSSL_STORE_INFO_new_PARAMS
+    OSSL_STORE_INFO_new_PKEY
+    OSSL_STORE_INFO_set0_NAME_description
+    OSSL_STORE_INFO_type_string
+    OSSL_STORE_LOADER_free
+    OSSL_STORE_LOADER_get0_engine
+    OSSL_STORE_LOADER_get0_scheme
+    OSSL_STORE_LOADER_new
+    OSSL_STORE_LOADER_set_close
+    OSSL_STORE_LOADER_set_ctrl
+    OSSL_STORE_LOADER_set_eof
+    OSSL_STORE_LOADER_set_error
+    OSSL_STORE_LOADER_set_expect
+    OSSL_STORE_LOADER_set_find
+    OSSL_STORE_LOADER_set_load
+    OSSL_STORE_LOADER_set_open
+    OSSL_STORE_SEARCH_by_alias
+    OSSL_STORE_SEARCH_by_issuer_serial
+    OSSL_STORE_SEARCH_by_key_fingerprint
+    OSSL_STORE_SEARCH_by_name
+    OSSL_STORE_SEARCH_free
+    OSSL_STORE_SEARCH_get0_bytes
+    OSSL_STORE_SEARCH_get0_digest
+    OSSL_STORE_SEARCH_get0_name
+    OSSL_STORE_SEARCH_get0_serial
+    OSSL_STORE_SEARCH_get0_string
+    OSSL_STORE_SEARCH_get_type
+    OSSL_STORE_close
+    OSSL_STORE_ctrl
+    OSSL_STORE_do_all_loaders
+    OSSL_STORE_eof
+    OSSL_STORE_error
+    OSSL_STORE_expect
+    OSSL_STORE_find
+    OSSL_STORE_load
+    OSSL_STORE_open
+    OSSL_STORE_register_loader
+    OSSL_STORE_supports_search
+    OSSL_STORE_unregister_loader
+    OSSL_STORE_vctrl
     OTHERNAME_cmp
     OTHERNAME_free
     OTHERNAME_it
@@ -2264,6 +2485,7 @@ EXPORTS
     PEM_X509_INFO_read_bio
     PEM_X509_INFO_write_bio
     PEM_bytes_read_bio
+    PEM_bytes_read_bio_secmem
     PEM_def_callback
     PEM_dek_info
     PEM_do_header
@@ -2314,6 +2536,7 @@ EXPORTS
     PEM_read_bio_X509_AUX
     PEM_read_bio_X509_CRL
     PEM_read_bio_X509_REQ
+    PEM_read_bio_ex
     PEM_write
     PEM_write_CMS
     PEM_write_DHparams
@@ -2562,20 +2785,54 @@ EXPORTS
     POLICY_MAPPING_free
     POLICY_MAPPING_it
     POLICY_MAPPING_new
+    PROFESSION_INFO_free
+    PROFESSION_INFO_get0_addProfessionInfo
+    PROFESSION_INFO_get0_namingAuthority
+    PROFESSION_INFO_get0_professionItems
+    PROFESSION_INFO_get0_professionOIDs
+    PROFESSION_INFO_get0_registrationNumber
+    PROFESSION_INFO_it
+    PROFESSION_INFO_new
+    PROFESSION_INFO_set0_addProfessionInfo
+    PROFESSION_INFO_set0_namingAuthority
+    PROFESSION_INFO_set0_professionItems
+    PROFESSION_INFO_set0_professionOIDs
+    PROFESSION_INFO_set0_registrationNumber
     PROXY_CERT_INFO_EXTENSION_free
     PROXY_CERT_INFO_EXTENSION_it
     PROXY_CERT_INFO_EXTENSION_new
     PROXY_POLICY_free
     PROXY_POLICY_it
     PROXY_POLICY_new
+    RAND_DRBG_bytes
+    RAND_DRBG_free
+    RAND_DRBG_generate
+    RAND_DRBG_get0_master
+    RAND_DRBG_get0_private
+    RAND_DRBG_get0_public
+    RAND_DRBG_get_ex_data
+    RAND_DRBG_instantiate
+    RAND_DRBG_new
+    RAND_DRBG_reseed
+    RAND_DRBG_secure_new
+    RAND_DRBG_set
+    RAND_DRBG_set_callbacks
+    RAND_DRBG_set_defaults
+    RAND_DRBG_set_ex_data
+    RAND_DRBG_set_reseed_defaults
+    RAND_DRBG_set_reseed_interval
+    RAND_DRBG_set_reseed_time_interval
+    RAND_DRBG_uninstantiate
     RAND_OpenSSL
     RAND_add
     RAND_bytes
     RAND_event
     RAND_file_name
     RAND_get_rand_method
+    RAND_keep_random_devices_open
     RAND_load_file
     RAND_poll
+    RAND_priv_bytes
     RAND_pseudo_bytes
     RAND_screen
     RAND_seed
@@ -2621,13 +2878,26 @@ EXPORTS
     RSA_flags
     RSA_free
     RSA_generate_key_ex
+    RSA_generate_multi_prime_key
     RSA_get0_crt_params
+    RSA_get0_d
+    RSA_get0_dmp1
+    RSA_get0_dmq1
+    RSA_get0_e
     RSA_get0_engine
     RSA_get0_factors
+    RSA_get0_iqmp
     RSA_get0_key
+    RSA_get0_multi_prime_crt_params
+    RSA_get0_multi_prime_factors
+    RSA_get0_n
+    RSA_get0_p
+    RSA_get0_q
     RSA_get_default_method
     RSA_get_ex_data
     RSA_get_method
+    RSA_get_multi_prime_extra_count
+    RSA_get_version
     RSA_meth_dup
     RSA_meth_free
     RSA_meth_get0_app_data
@@ -2638,6 +2908,7 @@ EXPORTS
     RSA_meth_get_init
     RSA_meth_get_keygen
     RSA_meth_get_mod_exp
+    RSA_meth_get_multi_prime_keygen
     RSA_meth_get_priv_dec
     RSA_meth_get_priv_enc
     RSA_meth_get_pub_dec
@@ -2653,6 +2924,7 @@ EXPORTS
     RSA_meth_set_init
     RSA_meth_set_keygen
     RSA_meth_set_mod_exp
+    RSA_meth_set_multi_prime_keygen
     RSA_meth_set_priv_dec
     RSA_meth_set_priv_enc
     RSA_meth_set_pub_dec
@@ -2678,6 +2950,7 @@ EXPORTS
     RSA_padding_check_SSLv23
     RSA_padding_check_X931
     RSA_padding_check_none
+    RSA_pkey_ctx_ctrl
     RSA_print
     RSA_print_fp
     RSA_private_decrypt
@@ -2688,6 +2961,7 @@ EXPORTS
     RSA_set0_crt_params
     RSA_set0_factors
     RSA_set0_key
+    RSA_set0_multi_prime_params
     RSA_set_default_method
     RSA_set_ex_data
     RSA_set_flags
@@ -2702,6 +2976,9 @@ EXPORTS
     RSA_verify_ASN1_OCTET_STRING
     RSA_verify_PKCS1_PSS
     RSA_verify_PKCS1_PSS_mgf1
+    SCRYPT_PARAMS_free
+    SCRYPT_PARAMS_it
+    SCRYPT_PARAMS_new
     SCT_LIST_free
     SCT_LIST_print
     SCT_LIST_validate
@@ -2823,6 +3100,7 @@ EXPORTS
     TS_CONF_set_default_engine
     TS_CONF_set_digests
     TS_CONF_set_ess_cert_id_chain
+    TS_CONF_set_ess_cert_id_digest
     TS_CONF_set_ordering
     TS_CONF_set_policies
     TS_CONF_set_serial
@@ -2876,6 +3154,7 @@ EXPORTS
     TS_RESP_CTX_set_certs
     TS_RESP_CTX_set_clock_precision_digits
     TS_RESP_CTX_set_def_policy
+    TS_RESP_CTX_set_ess_cert_id_digest
     TS_RESP_CTX_set_extension_cb
     TS_RESP_CTX_set_serial_cb
     TS_RESP_CTX_set_signer_cert
@@ -2960,6 +3239,7 @@ EXPORTS
     UI_OpenSSL
     UI_UTIL_read_pw
     UI_UTIL_read_pw_string
+    UI_UTIL_wrap_read_pem_callback
     UI_add_error_string
     UI_add_info_string
     UI_add_input_boolean
@@ -2974,6 +3254,7 @@ EXPORTS
     UI_dup_info_string
     UI_dup_input_boolean
     UI_dup_input_string
+    UI_dup_user_data
     UI_dup_verify_string
     UI_free
     UI_get0_action_string
@@ -2986,16 +3267,23 @@ EXPORTS
     UI_get_ex_data
     UI_get_input_flags
     UI_get_method
+    UI_get_result_length
     UI_get_result_maxsize
     UI_get_result_minsize
+    UI_get_result_string_length
     UI_get_string_type
     UI_method_get_closer
+    UI_method_get_data_destructor
+    UI_method_get_data_duplicator
+    UI_method_get_ex_data
     UI_method_get_flusher
     UI_method_get_opener
     UI_method_get_prompt_constructor
     UI_method_get_reader
     UI_method_get_writer
     UI_method_set_closer
+    UI_method_set_data_duplicator
+    UI_method_set_ex_data
     UI_method_set_flusher
     UI_method_set_opener
     UI_method_set_prompt_constructor
@@ -3003,11 +3291,13 @@ EXPORTS
     UI_method_set_writer
     UI_new
     UI_new_method
+    UI_null
     UI_process
     UI_set_default_method
     UI_set_ex_data
     UI_set_method
     UI_set_result
+    UI_set_result_ex
     USERNOTICE_free
     USERNOTICE_it
     USERNOTICE_new
@@ -3129,6 +3419,7 @@ EXPORTS
     X509_CRL_match
     X509_CRL_new
     X509_CRL_print
+    X509_CRL_print_ex
     X509_CRL_print_fp
     X509_CRL_set1_lastUpdate
     X509_CRL_set1_nextUpdate
@@ -3163,9 +3454,32 @@ EXPORTS
     X509_LOOKUP_ctrl
     X509_LOOKUP_file
     X509_LOOKUP_free
+    X509_LOOKUP_get_method_data
+    X509_LOOKUP_get_store
     X509_LOOKUP_hash_dir
     X509_LOOKUP_init
+    X509_LOOKUP_meth_free
+    X509_LOOKUP_meth_get_ctrl
+    X509_LOOKUP_meth_get_free
+    X509_LOOKUP_meth_get_get_by_alias
+    X509_LOOKUP_meth_get_get_by_fingerprint
+    X509_LOOKUP_meth_get_get_by_issuer_serial
+    X509_LOOKUP_meth_get_get_by_subject
+    X509_LOOKUP_meth_get_init
+    X509_LOOKUP_meth_get_new_item
+    X509_LOOKUP_meth_get_shutdown
+    X509_LOOKUP_meth_new
+    X509_LOOKUP_meth_set_ctrl
+    X509_LOOKUP_meth_set_free
+    X509_LOOKUP_meth_set_get_by_alias
+    X509_LOOKUP_meth_set_get_by_fingerprint
+    X509_LOOKUP_meth_set_get_by_issuer_serial
+    X509_LOOKUP_meth_set_get_by_subject
+    X509_LOOKUP_meth_set_init
+    X509_LOOKUP_meth_set_new_item
+    X509_LOOKUP_meth_set_shutdown
     X509_LOOKUP_new
+    X509_LOOKUP_set_method_data
     X509_LOOKUP_shutdown
     X509_NAME_ENTRY_create_by_NID
     X509_NAME_ENTRY_create_by_OBJ
@@ -3212,6 +3526,8 @@ EXPORTS
     X509_OBJECT_new
     X509_OBJECT_retrieve_by_subject
     X509_OBJECT_retrieve_match
+    X509_OBJECT_set1_X509
+    X509_OBJECT_set1_X509_CRL
     X509_OBJECT_up_ref_count
     X509_PKEY_free
     X509_PKEY_new
@@ -3295,6 +3611,8 @@ EXPORTS
     X509_REVOKED_new
     X509_REVOKED_set_revocationDate
     X509_REVOKED_set_serialNumber
+    X509_SIG_INFO_get
+    X509_SIG_INFO_set
     X509_SIG_free
     X509_SIG_get0
     X509_SIG_getm
@@ -3425,6 +3743,7 @@ EXPORTS
     X509_VERIFY_PARAM_get_count
     X509_VERIFY_PARAM_get_depth
     X509_VERIFY_PARAM_get_flags
+    X509_VERIFY_PARAM_get_hostflags
     X509_VERIFY_PARAM_get_inh_flags
     X509_VERIFY_PARAM_get_time
     X509_VERIFY_PARAM_inherit
@@ -3477,6 +3796,7 @@ EXPORTS
     X509_find_by_issuer_and_serial
     X509_find_by_subject
     X509_free
+    X509_get0_authority_key_id
     X509_get0_extensions
     X509_get0_notAfter
     X509_get0_notBefore
@@ -3514,6 +3834,7 @@ EXPORTS
     X509_get_pubkey
     X509_get_pubkey_parameters
     X509_get_serialNumber
+    X509_get_signature_info
     X509_get_signature_nid
     X509_get_signature_type
     X509_get_subject_name
@@ -3633,7 +3954,12 @@ EXPORTS
     b2i_PrivateKey_bio
     b2i_PublicKey
     b2i_PublicKey_bio
+    conf_ssl_get
+    conf_ssl_get_cmd
+    conf_ssl_name_find
     d2i_ACCESS_DESCRIPTION
+    d2i_ADMISSIONS
+    d2i_ADMISSION_SYNTAX
     d2i_ASIdOrRange
     d2i_ASIdentifierChoice
     d2i_ASIdentifiers
@@ -3695,8 +4021,10 @@ EXPORTS
     d2i_EC_PUBKEY_fp
     d2i_EDIPARTYNAME
     d2i_ESS_CERT_ID
+    d2i_ESS_CERT_ID_V2
     d2i_ESS_ISSUER_SERIAL
     d2i_ESS_SIGNING_CERT
+    d2i_ESS_SIGNING_CERT_V2
     d2i_EXTENDED_KEY_USAGE
     d2i_GENERAL_NAMES
     d2i_GENERAL_NAME
@@ -3705,6 +4033,7 @@ EXPORTS
     d2i_IPAddressOrRange
     d2i_IPAddressRange
     d2i_ISSUING_DIST_POINT
+    d2i_NAMING_AUTHORITY
     d2i_NETSCAPE_CERT_SEQUENCE
     d2i_NETSCAPE_SPKAC
     d2i_NETSCAPE_SPKI
@@ -3756,6 +4085,7 @@ EXPORTS
     d2i_PKEY_USAGE_PERIOD
     d2i_POLICYINFO
     d2i_POLICYQUALINFO
+    d2i_PROFESSION_INFO
     d2i_PROXY_CERT_INFO_EXTENSION
     d2i_PROXY_POLICY
     d2i_PUBKEY
@@ -3776,6 +4106,7 @@ EXPORTS
     d2i_RSA_PUBKEY
     d2i_RSA_PUBKEY_bio
     d2i_RSA_PUBKEY_fp
+    d2i_SCRYPT_PARAMS
     d2i_SCT_LIST
     d2i_SXNETID
     d2i_SXNET
@@ -3829,6 +4160,8 @@ EXPORTS
     i2b_PrivateKey_bio
     i2b_PublicKey_bio
     i2d_ACCESS_DESCRIPTION
+    i2d_ADMISSIONS
+    i2d_ADMISSION_SYNTAX
     i2d_ASIdOrRange
     i2d_ASIdentifierChoice
     i2d_ASIdentifiers
@@ -3890,8 +4223,10 @@ EXPORTS
     i2d_EC_PUBKEY_fp
     i2d_EDIPARTYNAME
     i2d_ESS_CERT_ID
+    i2d_ESS_CERT_ID_V2
     i2d_ESS_ISSUER_SERIAL
     i2d_ESS_SIGNING_CERT
+    i2d_ESS_SIGNING_CERT_V2
     i2d_EXTENDED_KEY_USAGE
     i2d_GENERAL_NAMES
     i2d_GENERAL_NAME
@@ -3900,6 +4235,7 @@ EXPORTS
     i2d_IPAddressOrRange
     i2d_IPAddressRange
     i2d_ISSUING_DIST_POINT
+    i2d_NAMING_AUTHORITY
     i2d_NETSCAPE_CERT_SEQUENCE
     i2d_NETSCAPE_SPKAC
     i2d_NETSCAPE_SPKI
@@ -3957,6 +4293,7 @@ EXPORTS
     i2d_PKEY_USAGE_PERIOD
     i2d_POLICYINFO
     i2d_POLICYQUALINFO
+    i2d_PROFESSION_INFO
     i2d_PROXY_CERT_INFO_EXTENSION
     i2d_PROXY_POLICY
     i2d_PUBKEY
@@ -3977,6 +4314,7 @@ EXPORTS
     i2d_RSA_PUBKEY
     i2d_RSA_PUBKEY_bio
     i2d_RSA_PUBKEY_fp
+    i2d_SCRYPT_PARAMS
     i2d_SCT_LIST
     i2d_SXNETID
     i2d_SXNET
