@@ -79,6 +79,8 @@ def parse_build_log(input_log, output_ini):
                 continue
         if len(cmdline) == 3 and cmdline[0] == '-E' and cmdline[1] == '-P' and cmdline[2] == '-':
             continue
+        if len(cmdline) == 5 and cmdline[0] == '-dM' and cmdline[1] == '-E' and cmdline[2] == '-x' and cmdline[3] == 'c' and cmdline[4] == '/dev/null':
+            continue
         if '-' in bits[1]:
             tool = bits[1].rsplit('-',1)[1].strip()
         else:
