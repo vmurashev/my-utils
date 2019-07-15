@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 
 from __future__ import print_function
 import sys
@@ -130,7 +130,7 @@ def get_ini_conf_strings_optional(config, section, option):
     return get_ini_conf_strings(config, section, option)
 
 
-def gen_makefile_for_lib(lib_ini_name, lib_make_name, vendor_prefix, incd, makedir, arch_map, def_file=None):
+def gen_makefile_for_lib(lib_ini_name, lib_make_name, vendor_prefix, incd, asm_incd, makedir, arch_map, def_file=None):
     is_shared = def_file is not None
     arch_list = sorted(arch_map.keys())
 
@@ -271,6 +271,12 @@ def gen_makefile_for_lib(lib_ini_name, lib_make_name, vendor_prefix, incd, maked
             print("  '{}',".format(inc), file=fh)
         print("]", file=fh)
         print("", file=fh)
+        if asm_incd:
+            print("asm_include_dir_list = [", file=fh)
+            for inc in asm_incd:
+                print("  '{}',".format(inc), file=fh)
+            print("]", file=fh)
+            print("", file=fh)
         print("src_search_dir_list = [", file=fh)
         for dir_name in sorted(dir_names):
             dir_name_norm = '/'.join([vendor_prefix, dir_name])
@@ -521,7 +527,13 @@ def main():
         '../../vendor/crypto/include',
         '../../vendor/crypto',
         '../../vendor/crypto/modes',
+        '../../vendor/crypto/ec/curve448',
+        '../../vendor/crypto/ec/curve448/arch_32',
         '${@project_root}/zlib/include',
+    ]
+
+    crypto_asm_incd = [
+        '../../vendor/crypto',
     ]
 
     ssl_incd = [
@@ -533,11 +545,11 @@ def main():
     crypto_def_file = os.path.join(DIR_HERE, 'tweaks', 'libcrypto.def')
     ssl_def_file = os.path.join(DIR_HERE, 'tweaks', 'libssl.def')
 
-    gen_makefile_for_lib('crypto', 'crypto_static', '../../vendor', crypto_incd, CRYPTO_STATIC_MAKE_DIR, arch_map)
-    gen_makefile_for_lib('crypto', 'crypto', '../../vendor', crypto_incd, CRYPTO_SHARED_MAKE_DIR, arch_map, crypto_def_file)
+    gen_makefile_for_lib('crypto', 'crypto_static', '../../vendor', crypto_incd, crypto_asm_incd, CRYPTO_STATIC_MAKE_DIR, arch_map)
+    gen_makefile_for_lib('crypto', 'crypto', '../../vendor', crypto_incd, crypto_asm_incd, CRYPTO_SHARED_MAKE_DIR, arch_map, crypto_def_file)
 
-    gen_makefile_for_lib('ssl', 'ssl_static', '../../vendor', ssl_incd, SSL_STATIC_MAKE_DIR, arch_map)
-    gen_makefile_for_lib('ssl', 'ssl', '../../vendor', ssl_incd, SSL_SHARED_MAKE_DIR, arch_map, ssl_def_file)
+    gen_makefile_for_lib('ssl', 'ssl_static', '../../vendor', ssl_incd, [], SSL_STATIC_MAKE_DIR, arch_map)
+    gen_makefile_for_lib('ssl', 'ssl', '../../vendor', ssl_incd, [], SSL_SHARED_MAKE_DIR, arch_map, ssl_def_file)
 
     if not os.path.isdir(APPS_MAKE_DIR):
         os.makedirs(APPS_MAKE_DIR)

@@ -38,7 +38,8 @@ minibuild --directory $DIR_HERE/shlib_verify_export --model gcc-xt-linux-arm64 -
 )
 
 (
-  export LD_PRELOAD=$DIR_HERE/draft/output/shared/gcc-xt-linux-x86_64/release/libcrypto.so
+  export LD_LIBRARY_PATH=$DIR_HERE/draft/output/shared/gcc-xt-linux-x86_64/release
+  echo "LD_LIBRARY_PATH=$DIR_HERE/draft/output/shared/gcc-xt-linux-x86_64/release"
   $DIR_HERE/shlib_verify_export/output/exe/gcc-xt-linux-x86_64/release/shlib_verify_export \
     - \
     $DIR_HERE/draft/output/shared/gcc-xt-linux-x86_64/release/libssl.so
